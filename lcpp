@@ -23,4 +23,4 @@ long_line_column=72
 
 [files]
 current_page=0
-FILE_NAME_0=24;C;0;16;0;1;0;%2Fhome%2Flifeforce%2Fdev%2Flcpp%2Fsrc%2Fhello_world%2Fhellow_world.c;0;4
+FILE_NAME_0=0;C++;0;16;0;1;0;%2Fhome%2Flifeforce%2Fdev%2Flcpp%2Fsrc%2Fgl_image%2Fgl_image.cpp;0;4
