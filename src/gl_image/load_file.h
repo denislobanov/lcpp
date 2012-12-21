@@ -8,8 +8,7 @@ class load_file
 {
     public:
     load_file(std::string filename);
-    ~load_file();
-    std::vector<char>& file_data(void);
+    virtual ~load_file(void);
     std::vector<char> data;
 
     private:

@@ -1,5 +1,10 @@
 CC=g++
-LDLIBS=-lGLEW -lGL -lglfw
-all: gl_image
+CPPFLAGS=-Wall -std=c++11
+INCLUDES=-lGLEW -lGL -lglfw 
+OBJECTS=gl_image.o load_file.o shader.o window.o
 
-gl_image: load_file.o shader.o gl_image.o
+all: $(OBJECTS)
+	$(CC) $(CPPFLAGS) $(OBJECTS) -o gl_image
+
+%.o : %.c
+	$(CC) $(CPPFLAGS) $(INCLUDES) -c $<

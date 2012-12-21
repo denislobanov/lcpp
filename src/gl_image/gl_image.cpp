@@ -1,86 +1,96 @@
 #include <iostream>
 #include <vector>
+#include <cstdint>
 #include <GL/glew.h>
 #include <GL/gl.h>
 #include <GL/glfw.h>
 
 #include "load_file.h"
 #include "shader.h"
+#include "window.h"
 
 #define VERT_SHADER_PATH "./shaders/static_draw.vert"
 #define FRAG_SHADER_PATH "./shaders/static_draw.frag"
 
-class window
+class square
 {
     public:
-    window(int width, int height, int depth, int fullscreen);
-    ~window();
-    void set_size(int with, int height);
-    void set_pos(int x, int y);
-    void toggle_fullscreen();
+    square();
+    ~square();
+    void draw();
+    void advance_colour(uint64_t time_elapsed);
     
+
     private:
-    void size(int width, int height);
-    void pos(int x, int y);
+    struct cvertex_2d {
+        std::vector<GLfloat> pos_2d;
+        std::vector<GLfloat> col_rgb;
+    };
     
-    int is_fullscreen;
+    void init_resources();
+    void destroy();
+
+    GLuint vbo;
+    shader *le_shader;
 };
 
-window::window(int width, int height, int depth, int fullscreen)
+square::square(void)
 {
-    int res = glfwInit();
-    if(!res)
-        std::cout<<"throwing an exception ;)"<< std::endl;
-    
-    //possibly figure out rgba from one param?
-    res = glfwOpenWindow(width, height, 0, 0, 0, 0, depth, 0, fullscreen);
-    if(!res)
-        std::cout<<"failed to open window, glfwOpenWindow returned: "<<res<<std::endl;
-        
-    is_fullscreen = fullscreen;
+    std::cout<<"square::square -loading shader files"<<std::endl;
+    load_file* vert_shader = new load_file(VERT_SHADER_PATH);
+    load_file* frag_shader = new load_file(FRAG_SHADER_PATH);
+
+    std::cout<<"square::square -loading shaders"<<std::endl;
+    le_shader = new shader(vert_shader->data, frag_shader->data);
+
+    std::cout<<"square::square -initialising internal resources"<<std::endl;
+    init_resources();
 }
 
-window::~window()
+square::~square()
 {
-    glfwCloseWindow();
+    std::cout<<"square::~square -freeing internal resources"<<std::endl;
+    destroy();
+    delete vert_shader;
+    delete frag_shader;
+    delete le_shader;
 }
 
-void window::set_pos(int x, int y)
+void square::init_resources(void)
 {
-    return pos(x, y);
+    struct cvertex_2d attributes[] = {
+        {{ -1.0,    1.0 }, { 0.0, 1.0, 0.0 }},
+        {{  1.0,    1.0 }, { 0.0, 0.0, 1.0 }},
+        {{  1.0,   -1.0 }, { 1.0, 0.0, 0.0 }},
+        {{ -1.0,   -1.0 }, { 0.74, 0.4, 0.0 }}
+    };
+
+    glGenBuffers(1, &vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(attributes), attributes, GL_DYNAMIC_DRAW);
 }
 
-void window::set_size(int width, int height)
+void square::destroy(void)
 {
-    size(width, height);
+    glDeleteBuffers(1, &vbo);
 }
 
-void window::size(int width, int height)
+void square::advance_colour(uint64_t time_elapsed)
 {
-    glfwSetWindowSize(width, height);
+    //do something cool
 }
 
-void window::pos(int x, int y)
-{
-    glfwSetWindowPos(x, y);
-}
-
-void window::toggle_fullscreen()
-{
-    std::cout<<"not yet implemented"<<std::endl;
-}
 
 int main(void)
 {
-    std::cout<<"loading shader files"<<std::endl;
-    load_file vert_shader(VERT_SHADER_PATH);
-    load_file frage_shader(FRAG_SHADER_PATH);
-    //~ std::vector<char>& vs = vert_shader.file_data();
-    //~ std::vector<char>& fs = frage_shader.file_data();
-
-    std::cout<<"loading shaders"<<std::endl;
-    shader le_shader(vert_shader.data, frage_shader.data);
+    std::cout<<"creating window"<<std::endl;
+    window* le_window = new window(200, 200, 16, 0);
+    
+    
     std::cout<<"done (really?)"<<std::endl;
 
+    std::cout<<"cleaning up"<<std::endl;
+
+    delete le_window;
     return 0;
 }

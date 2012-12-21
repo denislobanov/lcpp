@@ -34,7 +34,7 @@ void shader::init_shader(std::vector<char>& vert_shader, std::vector<char>& frag
 {
     GLuint vs, fs;
     
-    vs = load_shader(vert_data, GL_VERTEX_SHADER);
+    vs = load_shader(vert_shader, GL_VERTEX_SHADER);
     fs = load_shader(frag_shader, GL_FRAGMENT_SHADER);
 
     //TODO throw a real exception
@@ -49,12 +49,12 @@ void shader::init_shader(std::vector<char>& vert_shader, std::vector<char>& frag
     glLinkProgram(program);
 
     //check if link worked
-    GLuint status;
+    GLint status;
     glGetProgramiv(program, GL_LINK_STATUS, &status);
     if(!status) {
-        std::cerr<<"glLinkProgram: "<<endl;
+        std::cerr<<"glLinkProgram: "<<std::endl;
         debug_shader(program);
-        std:cerr<<std::endl<<"program will NOT work"<<std::endl;
+        std::cerr<<std::endl<<"program will NOT work"<<std::endl;
     }
 }
 
@@ -63,10 +63,10 @@ void shader::debug_shader(GLuint &shader_program)
 {
     GLint log_length = 0;
     
-    if(glIsShader(object))
-        glGetShaderiv(object, GL_INFO_LOG_LENGTH, &log_length);
-    else if(glIsProgram(object))
-        glGetProgramiv(object, GL_INFO_LOG_LENGTH, &log_length);
+    if(glIsShader(shader_program))
+        glGetShaderiv(shader_program, GL_INFO_LOG_LENGTH, &log_length);
+    else if(glIsProgram(shader_program))
+        glGetProgramiv(shader_program, GL_INFO_LOG_LENGTH, &log_length);
     else {
         std::cerr<<"debug_shader: Not a shader or a program"<<std::endl;
         return;
@@ -74,13 +74,13 @@ void shader::debug_shader(GLuint &shader_program)
 
     char *log = new char[log_length];
 
-    if(glIsShader(object))
-        glGetShaderInfoLog(object, log_length, NULL, log);
+    if(glIsShader(shader_program))
+        glGetShaderInfoLog(shader_program, log_length, NULL, log);
         
-    else if(glIsProgram(object))
-        glGetProgramInfoLog(object, log_length, NULL, log);
+    else if(glIsProgram(shader_program))
+        glGetProgramInfoLog(shader_program, log_length, NULL, log);
 
-    std:cerr<log<<endl;
+    std::cerr<<log<<std::endl;
     delete[] log;
 }
 
@@ -93,7 +93,8 @@ GLint shader::load_shader(std::vector<char>& data, GLenum type)
     
     //give it to gl
     result = glCreateShader(type);
-    glShaderSource(result, 1, data[0], NULL);
+    const char* data_ptr = &data[0];
+    glShaderSource(result, 1, &data_ptr, NULL);
 
     //compile
     glCompileShader(result);
@@ -101,11 +102,17 @@ GLint shader::load_shader(std::vector<char>& data, GLenum type)
     
     glGetShaderiv(result, GL_COMPILE_STATUS, &status);
     if(status == GL_FALSE) {
-        std::cerr<<"Compilation failed"<<endl;
+        std::cerr<<"Compilation failed"<<std::endl;
         debug_shader(result);
         glDeleteShader(result);
         return 0;
     }
 
     return result;
+}
+
+void shader::void draw(GLenum mode, GLint first, GLsizei count)
+{
+    glUseProgram(program);
+    glDrawArrays(mode, first, count);
 }

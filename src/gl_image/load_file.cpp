@@ -21,8 +21,3 @@ void load_file::buffer_file_data(std::string filename)
                     std::back_inserter(data));
     }
 }
-
-std::vector<char>& file_data(void)
-{
-    return load_file::data;
-}
