@@ -40,8 +40,8 @@ int shader::add_attribute(std::string attribute)
 GLint shader::add_attr(std::string attribute)
 {
     GLint ret = glGetAttribLocation(program, attribute.c_str());
-    if(ret <= 0)
-        std::cerr<<"shader::add_attr failed to bind attributes "<<attribute<<std::endl;
+    if(ret == -1)
+        std::cerr<<"shader::add_attr -failed to bind attributes "<<attribute<<std::endl;
 
     return ret;
 }
@@ -89,7 +89,7 @@ void shader::debug_shader(GLuint &shader_program)
     else if(glIsProgram(shader_program))
         glGetProgramiv(shader_program, GL_INFO_LOG_LENGTH, &log_length);
     else {
-        std::cerr<<"debug_shader: Not a shader or a program"<<std::endl;
+        std::cerr<<"shader::debug_shader -Not a shader or a program"<<std::endl;
         return;
     }
 
@@ -145,5 +145,6 @@ GLint shader::load_shader(std::vector<char>& data, GLenum type)
 void shader::draw(GLenum mode, GLint first, GLsizei count)
 {
     glUseProgram(program);
+    glClear(GL_COLOR_BUFFER_BIT);
     glDrawArrays(mode, first, count);
 }

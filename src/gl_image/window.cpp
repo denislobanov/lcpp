@@ -44,3 +44,13 @@ void window::toggle_fullscreen()
 {
     std::cout<<"not yet implemented"<<std::endl;
 }
+
+void window::swap_buffers(void)
+{
+    glfwSwapBuffers();
+}
+
+bool window::exit_key_press(void)
+{
+    return (glfwGetKey(GLFW_KEY_ESC) == GLFW_PRESS);
+}

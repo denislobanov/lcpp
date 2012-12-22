@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <GL/glew.h>
 #include <GL/gl.h>
+#include <cmath>
 
 #include "square.h"
 #include "shader.h"
@@ -19,6 +20,7 @@ square::square(std::string vert_shader_path, std::string frag_shader_path)
 
     std::cout<<"square::square -initialising internal resources"<<std::endl;
     init_resources();
+    glClearColor(0.0, 0.0, 0.0, 1.0);
 }
 
 square::~square()
@@ -32,15 +34,15 @@ void square::init_resources(void)
 {
     std::cout<<"square::init_resources -adding attributes"<<std::endl;
     coord_attr = le_shader->add_attribute("coord_2d");
-    if(coord_attr) {
+    if(coord_attr > -1) {
         colour_attr = le_shader->add_attribute("coord_colour");
-        if(colour_attr)
-            std::cout<<"square::init_resourcesdone"<<std::endl;
+        if(colour_attr > -1)
+            std::cout<<"square::init_resources -done"<<std::endl;
         else
-            std::cerr<<"square::init_resourcesfailed to add colour_attr"<<std::endl;
+            std::cerr<<"square::init_resources -failed to add colour_attr"<<std::endl;
     } else
     {
-        std::cerr<<"square::init_resourcesfailed to add coord_attr"<<std::endl;
+        std::cerr<<"square::init_resources -failed to add coord_attr"<<std::endl;
     }
         
     struct cvertex_2d attributes[] = {
@@ -60,20 +62,43 @@ void square::destroy(void)
     glDeleteBuffers(1, &vbo);
 }
 
-void square::advance_colour(uint64_t time_elapsed)
+void square::draw(uint64_t time_elapsed)
 {
-    //do something cool
-}
-
-void square::draw(void)
-{
-    glClearColor( 0.0, 0.0, 0.0, 1.0 );
-    glClear(GL_COLOR_BUFFER_BIT);
+    uint64_t utime = time_elapsed*10;
+    
+    struct cvertex_2d attributes[] = {
+        {{ -1.0,    1.0 },
+        {
+            (GLfloat)(sinf(utime/1000.0*(2*3.14)/5) /2+0.5),
+            0.87,
+            (GLfloat)(cosf(utime/1000.0*(2*3.14)/5) /2+0.5)
+        }},
+        
+        {{  1.0,    1.0 },
+        {
+            (GLfloat)(cosf(utime/1000.0*(2*3.14)/5) /2+0.5),
+            (GLfloat)(sinf(utime/1000.0*(2*3.14)/5) /2+0.5),
+            0.95
+        }},
+        
+        {{  1.0,   -1.0 },
+        {
+            0.732,
+            (GLfloat)(cosf(utime/1000.0*(2*3.14)/5) /2+0.5),
+            (GLfloat)(sinf(utime/1000.0*(2*3.14)/5) /2+0.5),
+        }},
+        
+        {{ -1.0,   -1.0 },
+        {
+            0.48,
+            (GLfloat)(sinf(utime/1000.0*(2*3.14)/5) /2+0.5),
+            (GLfloat)(sinf(utime/1000.0*(2*3.14)/5) /2+0.5)
+        }}
+    };
+    glBufferData(GL_ARRAY_BUFFER, sizeof(attributes), attributes, GL_DYNAMIC_DRAW);
+    
     glEnableVertexAttribArray(coord_attr);
-    glEnableVertexAttribArray(colour_attr);
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
-
-    //describe vert array
     glVertexAttribPointer(
         coord_attr,
         2, 
@@ -82,7 +107,8 @@ void square::draw(void)
         sizeof(struct cvertex_2d),
         0 
     );
-    
+
+    glEnableVertexAttribArray(colour_attr);
     glVertexAttribPointer(
         colour_attr,
         3,
@@ -91,4 +117,8 @@ void square::draw(void)
         sizeof(struct cvertex_2d),
         (GLvoid*)offsetof(struct cvertex_2d, col_rgb)
     );
+
+    le_shader->draw(GL_QUADS, 0, 4);
+    glDisableVertexAttribArray(colour_attr);
+    glDisableVertexAttribArray(coord_attr);
 }

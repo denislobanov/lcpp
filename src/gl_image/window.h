@@ -10,6 +10,8 @@ class window
     void set_size(int with, int height);
     void set_pos(int x, int y);
     void toggle_fullscreen();
+    void swap_buffers();
+    bool exit_key_press();
     
     private:
     void size(int width, int height);

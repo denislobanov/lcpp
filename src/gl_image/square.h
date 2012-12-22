@@ -13,14 +13,13 @@ class square
     public:
     square(std::string vert_shader_path, std::string frag_shader_path);
     ~square();
-    void draw();
-    void advance_colour(uint64_t time_elapsed);
+    void draw(uint64_t time_elapsed);
     
 
     private:
     struct cvertex_2d {
-        std::vector<GLfloat> pos_2d;
-        std::vector<GLfloat> col_rgb;
+        GLfloat pos_2d[2];
+        GLfloat col_rgb[3];
     };
     
     void init_resources();
