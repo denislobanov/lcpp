@@ -1,22 +1,18 @@
 #include <iostream>
-#include <GL/glew.h>
-#include <GL/gl.h>
 #include <GL/glfw.h>
 
 #include "window.h"
 
-window::window(int width, int height, int depth, int fullscreen)
+window::window(int width, int height, int depth)
 {
     int res = glfwInit();
     if(!res)
         std::cout<<"throwing an exception ;)"<< std::endl;
     
     //possibly figure out rgba from one param?
-    res = glfwOpenWindow(width, height, 0, 0, 0, 0, depth, 0, fullscreen);
+    res = glfwOpenWindow(width, height, 0, 0, 0, 0, depth, 0, GLFW_WINDOW);
     if(!res)
         std::cout<<"failed to open window, glfwOpenWindow returned: "<<res<<std::endl;
-        
-    is_fullscreen = fullscreen;
 }
 
 window::~window()

@@ -8,7 +8,23 @@
 
 shader::shader(std::vector<char>& vert_shader, std::vector<char>& frag_shader)
 {
-    init_shader(vert_shader, frag_shader);
+    //we need to initialise GLEW first
+    std::cout<<"shader::shader -initialising GLEW"<<std::endl;
+    GLenum glew_status = glewInit();
+    if(glew_status == GLEW_OK) {
+        if(GLEW_VERSION_2_0) {
+            //all okay, go ahead
+            init_shader(vert_shader, frag_shader);
+
+            glEnable(GL_BLEND);
+            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+            std::cout<<"shader::shader -initialised"<<std::endl;
+        } else {
+            std::cerr<<"shader::shader -Your graphics card does not support OpenGL 2.0"<<std::endl;
+        }
+    } else {
+        std::cerr<<"shader::shader -Error:"<<glewGetErrorString(glew_status)<<std::endl;
+    }
 }
 
 shader::~shader(void)
@@ -32,35 +48,40 @@ GLint shader::add_attr(std::string attribute)
 
 void shader::init_shader(std::vector<char>& vert_shader, std::vector<char>& frag_shader)
 {
+    std::cout<<"shader::init_shader -loading shaders"<<std::endl;
     GLuint vs, fs;
-    
     vs = load_shader(vert_shader, GL_VERTEX_SHADER);
     fs = load_shader(frag_shader, GL_FRAGMENT_SHADER);
 
-    //TODO throw a real exception
-    if((vs == 0)||(fs == 0))
-        std::cout<<"failed to load shaders. its all buggered"<<std::endl;
+    //TODO throw a real exception?
+    if((vs > 0)&&(fs > 0)) {
+        program = glCreateProgram();
 
-    program = glCreateProgram();
+        //attach shader
+        std::cout<<"shader::init_shader -attaching shaders"<<std::endl;
+        glAttachShader(program, vs);
+        glAttachShader(program, fs);
+        glLinkProgram(program);
 
-    //attach shader
-    glAttachShader(program, vs);
-    glAttachShader(program, fs);
-    glLinkProgram(program);
-
-    //check if link worked
-    GLint status;
-    glGetProgramiv(program, GL_LINK_STATUS, &status);
-    if(!status) {
-        std::cerr<<"glLinkProgram: "<<std::endl;
-        debug_shader(program);
-        std::cerr<<std::endl<<"program will NOT work"<<std::endl;
+        //check if link worked
+        GLint status;
+        glGetProgramiv(program, GL_LINK_STATUS, &status);
+        if(!status) {
+            std::cerr<<"shader::init_shader -glLinkProgram: "<<std::endl;
+            debug_shader(program);
+            std::cerr<<std::endl<<"shader::init_shader -program will NOT work"<<std::endl;
+        }
+    }
+    else {
+        std::cout<<"shader::init_shader -failed to load shaders. its all buggered"<<std::endl;
     }
 }
 
 //FIXME not cpp
 void shader::debug_shader(GLuint &shader_program)
 {
+    std::cout<<"shader::debug_shader start"<<std::endl;
+    
     GLint log_length = 0;
     
     if(glIsShader(shader_program))
@@ -82,6 +103,7 @@ void shader::debug_shader(GLuint &shader_program)
 
     std::cerr<<log<<std::endl;
     delete[] log;
+    std::cout<<"shader::debug_shader finish"<<std::endl;
 }
 
 GLint shader::load_shader(std::vector<char>& data, GLenum type)
@@ -93,8 +115,15 @@ GLint shader::load_shader(std::vector<char>& data, GLenum type)
     
     //give it to gl
     result = glCreateShader(type);
-    const char* data_ptr = &data[0];
-    glShaderSource(result, 1, &data_ptr, NULL);
+    const GLchar* data_ptr = &data[0];
+    if(*data_ptr == 0) {
+        std::cerr<<"shader::load_shader -*data_ptr == NULL"<<std::endl;
+        return -1;
+    } else {
+        std::cout<<"shader::load_shader - *data_ptr valid"<<std::endl;
+    }
+    
+    glShaderSource(result, 1, &data_ptr, 0);
 
     //compile
     glCompileShader(result);
@@ -105,13 +134,15 @@ GLint shader::load_shader(std::vector<char>& data, GLenum type)
         std::cerr<<"Compilation failed"<<std::endl;
         debug_shader(result);
         glDeleteShader(result);
-        return 0;
+        return -1;
     }
+
+    std::cout<<"shader::load_shader -success"<<std::endl;
 
     return result;
 }
 
-void shader::void draw(GLenum mode, GLint first, GLsizei count)
+void shader::draw(GLenum mode, GLint first, GLsizei count)
 {
     glUseProgram(program);
     glDrawArrays(mode, first, count);

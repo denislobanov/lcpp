@@ -20,7 +20,6 @@ class shader
     void debug_shader(GLuint &shader_program);
 
     GLuint program;
-    GLint colour_attr, coord_attr;
 };
 
 #endif
