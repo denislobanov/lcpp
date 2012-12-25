@@ -18,6 +18,8 @@ class shader
     GLint load_shader(std::vector<char>& data, GLenum type);
     GLint add_attr(std::string attribute);
     void debug_shader(GLuint &shader_program);
+    bool init_glew();
+    void init_gl();
 
     GLuint program;
 };

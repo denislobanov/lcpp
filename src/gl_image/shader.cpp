@@ -8,22 +8,9 @@
 
 shader::shader(std::vector<char>& vert_shader, std::vector<char>& frag_shader)
 {
-    //we need to initialise GLEW first
-    std::cout<<"shader::shader -initialising GLEW"<<std::endl;
-    GLenum glew_status = glewInit();
-    if(glew_status == GLEW_OK) {
-        if(GLEW_VERSION_2_0) {
-            //all okay, go ahead
-            init_shader(vert_shader, frag_shader);
-
-            glEnable(GL_BLEND);
-            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-            std::cout<<"shader::shader -initialised"<<std::endl;
-        } else {
-            std::cerr<<"shader::shader -Your graphics card does not support OpenGL 2.0"<<std::endl;
-        }
-    } else {
-        std::cerr<<"shader::shader -Error:"<<glewGetErrorString(glew_status)<<std::endl;
+    if(init_glew()) {
+        init_gl();
+        init_shader(vert_shader, frag_shader);
     }
 }
 
@@ -147,4 +134,35 @@ void shader::draw(GLenum mode, GLint first, GLsizei count)
     glUseProgram(program);
     glClear(GL_COLOR_BUFFER_BIT);
     glDrawArrays(mode, first, count);
+}
+
+bool shader::init_glew(void)
+{
+    std::cout<<"shader::init_glew -initialising GLEW"<<std::endl;
+
+    GLenum glew_status = glewInit();
+    if(glew_status != GLEW_OK) {
+        std::cerr<<"shader::init_glew -Error:"<<glewGetErrorString(glew_status)<<std::endl;
+        return false;
+    }
+
+    if(!GLEW_VERSION_2_0) {
+        std::cerr<<"shader::init_glew -Your graphics card does not support OpenGL 2.0"<<std::endl;
+        return false;
+    }
+
+    std::cout<<"shader::init_glew -initialised"<<std::endl;
+    return true;
+}
+
+void shader::init_gl(void)
+{
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    
+    //clear
+    glClearColor(0.0, 0.0, 0.0, 1.0);
+    glClear(GL_COLOR_BUFFER_BIT);
+
+    glFlush();
 }
