@@ -11,7 +11,7 @@
 class square
 {
     public:
-    square(std::string vert_shader_path, std::string frag_shader_path);
+    explicit square(std::string vert_shader_path, std::string frag_shader_path);
     ~square();
     void draw(uint64_t time_elapsed);
     
@@ -25,6 +25,7 @@ class square
     void init_resources();
     void destroy();
 
+    protected:
     GLuint vbo;
     GLint colour_attr, coord_attr;
     shader *le_shader;
