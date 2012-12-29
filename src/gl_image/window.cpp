@@ -1,5 +1,6 @@
 #include <iostream>
 #include <GL/glfw.h>
+#include <GL/gl.h>
 
 #include "window.h"
 
@@ -33,6 +34,7 @@ void window::set_size(int width, int height)
 void window::size(int width, int height)
 {
     glfwSetWindowSize(width, height);
+    glViewport(0, 0, width, height);
 }
 
 void window::pos(int x, int y)

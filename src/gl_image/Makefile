@@ -1,20 +1,28 @@
 CC=clang++
 CPPFLAGS=-Wall -std=c++11
 INCLUDES=-lGLEW -lGL -lglfw 
-OBJECTS=load_file.o gl_image.o shader.o window.o square.o cube.o
+COMMON_OBJECTS=load_file.o shader.o window.o square.o
+CUBE_OBJECTS=cube.o gl_cube.o
+SQUARE_OBJECTS=gl_square.o
 
-all: $(OBJECTS)
-	$(CC) $(CPPFLAGS) $(INCLUDES) $(OBJECTS) -o gl_image
+all: cube
+
+square:	$(COMMON_OBJECTS) $(SQUARE_OBJECTS)
+	$(CC) $(CPPFLAGS) $(INCLUDES) $(COMMON_OBJECTS) $(SQUARE_OBJECTS) -o gl_square
+
+cube: $(COMMON_OBJECTS) $(CUBE_OBJECTS)
+	$(CC) $(CPPFLAGS) $(INCLUDES) $(COMMON_OBJECTS) $(CUBE_OBJECTS) -o gl_cube
 
 clean:
-	rm -f $(OBJECTS) gl_image
+	rm -f $(COMMON_OBJECTS) $(SQUARE_OBJECTS) $(CUBE_OBJECTS) 
+	rm -f gl_square gl_cube
 
 %.o : %.cpp
 ifeq ($(CC),clang++)
 	$(CC) $(CPPFLAGS) -c $<
 else
-#	chack if we need the $(INCLUDES) here
+#	check if we need the $(INCLUDES) here
 	$(CC) $(CPPFLAGS) $(INCLUDES) -c $<
 endif
 
-.PHONY: all clean
+.PHONY: all clean cube square

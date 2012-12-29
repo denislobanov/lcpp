@@ -2,7 +2,6 @@
 #include <vector>
 #include <cstdint>
 #include <GL/glew.h>
-#include <GL/gl.h>
 #include <cmath>
 
 #include "square.h"
@@ -18,8 +17,8 @@ square::square(std::string vert_shader_path, std::string frag_shader_path)
     std::cout<<"square::square -loading shaders"<<std::endl;
     le_shader = new shader(vert_shader.data, frag_shader.data);
 
-    std::cout<<"square::square -initialising internal resources"<<std::endl;
-    init_resources();
+    //~ std::cout<<"square::square -initialising internal resources"<<std::endl;
+    //~ init_resources();
     glClearColor(0.0, 0.0, 0.0, 1.0);
 }
 
@@ -118,7 +117,7 @@ void square::draw(uint64_t time_elapsed)
         (GLvoid*)offsetof(struct cvertex_2d, col_rgb)
     );
 
-    le_shader->draw(GL_QUADS, 0, 4);
+    le_shader->draw_arrays(GL_QUADS, 0, 4);
     glDisableVertexAttribArray(colour_attr);
     glDisableVertexAttribArray(coord_attr);
 }

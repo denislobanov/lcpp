@@ -25,9 +25,10 @@ class square
     void init_resources();
     void destroy();
 
-    protected:
     GLuint vbo;
     GLint colour_attr, coord_attr;
+
+    protected:
     shader *le_shader;
 };
 

@@ -21,14 +21,18 @@ shader::~shader(void)
 
 int shader::add_attribute(std::string attribute)
 {
-    return add_attr(attribute);
-}
-
-GLint shader::add_attr(std::string attribute)
-{
-    GLint ret = glGetAttribLocation(program, attribute.c_str());
+    int ret = glGetAttribLocation(program, attribute.c_str());
     if(ret == -1)
         std::cerr<<"shader::add_attr -failed to bind attributes "<<attribute<<std::endl;
+
+    return ret;
+}
+
+int shader::add_uniform(std::string uniform)
+{
+    int ret = glGetUniformLocation(program, uniform.c_str());
+    if(ret == -1)
+        std::cerr<<"shader::add_uniform -failed to bind uniform "<<uniform<<std::endl;
 
     return ret;
 }
@@ -129,11 +133,18 @@ GLint shader::load_shader(std::vector<char>& data, GLenum type)
     return result;
 }
 
-void shader::draw(GLenum mode, GLint first, GLsizei count)
+void shader::draw_arrays(GLenum mode, GLint first, GLsizei count)
 {
     glUseProgram(program);
     glClear(GL_COLOR_BUFFER_BIT);
     glDrawArrays(mode, first, count);
+}
+
+void shader::draw_elements(GLenum mode, GLsizei count, GLenum type, const GLvoid* indicies)
+{
+    glUseProgram(program);
+    glClear(GL_COLOR_BUFFER_BIT);
+    glDrawElements(mode, count, type, indicies);
 }
 
 bool shader::init_glew(void)

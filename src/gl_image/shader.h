@@ -11,16 +11,18 @@ class shader
     shader(std::vector<char>& vert_shader, std::vector<char>& frag_shader);
     ~shader();
     int add_attribute(std::string attribute);
-    void draw(GLenum mode, GLint first, GLsizei count);
+    int add_uniform(std::string uniform);
+    void draw_arrays(GLenum mode, GLint first, GLsizei count);
+    void draw_elements(GLenum mode, GLsizei count, GLenum type, const GLvoid* indicies);
     
     private:
     void init_shader(std::vector<char>& vert_shader, std::vector<char>& frag_shader);
     GLint load_shader(std::vector<char>& data, GLenum type);
-    GLint add_attr(std::string attribute);
     void debug_shader(GLuint &shader_program);
     bool init_glew();
     void init_gl();
 
+    protected:
     GLuint program;
 };
 
