@@ -143,7 +143,7 @@ void shader::draw_arrays(GLenum mode, GLint first, GLsizei count)
 void shader::draw_elements(GLenum mode, GLsizei count, GLenum type, const GLvoid* indicies)
 {
     glUseProgram(program);
-    glClear(GL_COLOR_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
     glDrawElements(mode, count, type, indicies);
 }
 

@@ -48,7 +48,7 @@ void cube::init_resources(void)
     };
     glGenBuffers(1, &vbo_colour);
     glBindBuffer(GL_ARRAY_BUFFER, vbo_colour);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(cube_colours), cube_colours, GL_DYNAMIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(cube_colours), cube_colours, GL_STATIC_DRAW);
 
     GLushort cube_elements[] = {
         // front
@@ -86,7 +86,6 @@ void cube::init_resources(void)
     }
 
     glEnable(GL_DEPTH_TEST);
-    //~ glClearColor(1.0, 1.0, 1.0, 1.0);
     glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 }
 
@@ -110,33 +109,6 @@ void cube::draw(uint64_t time_elapsed)
     glm::mat4 mvp = projection*view*model*anim;
     glUniformMatrix4fv(uniform_mvp, 1, GL_FALSE, glm::value_ptr(mvp));
 
-    //vary the colour here
-    //~ uint64_t utime = time_elapsed*10;
-    //~ GLfloat cube_colours[] = {
-        //~ // front colors
-        //~ (GLfloat)(sinf(utime/1000.0*(2*3.14)/5) /2+0.5),
-        //~ 0.87,
-        //~ (GLfloat)(cosf(utime/1000.0*(2*3.14)/5) /2+0.5),
-        //~ 
-        //~ (GLfloat)(cosf(utime/1000.0*(2*3.14)/5) /2+0.5),
-        //~ (GLfloat)(sinf(utime/1000.0*(2*3.14)/5) /2+0.5),
-        //~ 0.95,
-        //~ 
-        //~ 0.732,
-        //~ (GLfloat)(cosf(utime/1000.0*(2*3.14)/5) /2+0.5),
-        //~ (GLfloat)(sinf(utime/1000.0*(2*3.14)/5) /2+0.5),
-        //~ 
-        //~ 0.48,
-        //~ (GLfloat)(sinf(utime/1000.0*(2*3.14)/5) /2+0.5),
-        //~ (GLfloat)(sinf(utime/1000.0*(2*3.14)/5) /2+0.5),
-        //~ // back colors
-        //~ 1.0, 0.0, 0.0,
-        //~ 0.0, 1.0, 0.0,
-        //~ 0.0, 0.0, 1.0,
-        //~ 1.0, 1.0, 1.0,
-    //~ };
-    //~ glBufferData(GL_ARRAY_BUFFER, sizeof(cube_colours), cube_colours, GL_DYNAMIC_DRAW);
-    //~ 
     glEnableVertexAttribArray(attr_colour);
     glBindBuffer(GL_ARRAY_BUFFER, vbo_colour);
     glVertexAttribPointer(
