@@ -1,7 +1,7 @@
 CC=clang++
 CPPFLAGS=-Wall -std=c++11 $(shell curl-config --cflags)
 INCLUDES=$(shell curl-config --libs)
-COMMON_OBJECTS=
+COMMON_OBJECTS=netio.o test_netio.o
 
 all: get_page
 
