@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <mutex>
+#include <vector>
 #include <curl/curl.h>
 
 class netio
@@ -19,9 +20,14 @@ class netio
     std::mutex lib_mutex;
     CURL* lib_handle;
     CURLcode curl_ret;
-
     std::string user_agent;
     std::string error_buffer;
+
+    std::vector<char> header_data;
+    std::vector<char> page_data;
+
+    size_t store_header(char *ptr, size_t size, size_t nmemb, void *userp);
+    size_t store_data(char *ptr, size_t size, size_t nmemb, void *userp);
 };
 
 #endif

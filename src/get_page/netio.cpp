@@ -1,5 +1,6 @@
 #include <iostream>
 #include <mutex>
+#include <vector>
 #include <curl/curl.h>
 
 #include "netio.h"
@@ -7,6 +8,7 @@
 netio::netio(std::string user_agent_string)
 {
     user_agent = user_agent_string;
+    header_data.reserve(CURL_MAX_HTTP_HEADER);
     
     //initialise libCURL
     lib_handle = curl_easy_init();
@@ -53,10 +55,37 @@ bool netio::default_config(bool debug)
     if((curl_ret = curl_easy_setopt(lib_handle, CURLOPT_USERAGENT, user_agent.c_str())) != CURLE_OK)
         return false;
 
+    //callbacks
+    //~ if((curl_ret = curl_easy_setopt(lib_handle, CURLOPT_HEADERFUNCTION, &netio::store_header)) != CURLE_OK)
+        //~ return false;
+    if((curl_ret = curl_easy_setopt(lib_handle, CURLOPT_WRITEFUNCTION, &netio::store_data)) != CURLE_OK)
+        return false;
+    if((curl_ret = curl_easy_setopt(lib_handle, CURLOPT_WRITEDATA, &page_data)) != CURLE_OK)
+        return false;
+
     return true;
 }
 
 void netio::reset_config(void)
 {
     curl_easy_reset(lib_handle);
+}
+
+size_t netio::store_header(char *ptr, size_t size, size_t nmemb, void *userp)
+{
+    std::cout<<"store_header"<<std::endl;
+    return 0;
+}
+
+size_t netio::store_data(char *ptr, size_t size, size_t nmemb, void *userp)
+{
+    std::cout<<"store_data"<<std::endl;
+    size_t real_size = size*nmemb;
+    std::vector<char>* real_data = (std::vector<char> *)userp;
+    
+    const char* start = ptr;
+    const char* end = start+real_size;
+    std::copy(start, end, std::back_inserter(*real_data));
+    
+    return real_size;
 }
