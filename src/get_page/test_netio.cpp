@@ -1,30 +1,24 @@
 #include <iostream>
+#include <fstream>
 
 #include "netio.h"
+
 
 int main(void)
 {
     std::cout<<"initialising netio object"<<std::endl;
     netio my_netio("lcpp netio test");
+    std::string web_page;
 
-    //~ std::cout<<"configuring without debug... ";
-    //~ if(my_netio.default_config(false))
-        //~ std::cout<<"success"<<std::endl;
-    //~ else
-        //~ std::cout<<"fail"<<std::endl;
-//~ 
-    //~ std::cout<<"resetting configuration"<<std::endl;
-    //~ my_netio.reset_config();
+    std::cout<<"fetching http://www.geeksaresexy.net/"<<std::endl;
+    my_netio.fetch(&web_page, "http://www.geeksaresexy.net/");
 
-    std::cout<<"configuring with debug... ";
-    if(my_netio.default_config(true))
-        std::cout<<"success"<<std::endl;
-    else
-        std::cout<<"fail"<<std::endl;
-
-    std::cout<<"fetching http://google.com/"<<std::endl;
-    my_netio.fetch("http://google.com/");
-
-    std::cout<<"shutting down"<<std::endl;
+    std::cout<<"dumping to test_file.html"<<std::endl;
+    std::ofstream stream;
+    stream.open("test_file.html");
+    if(stream != 0)
+        stream<<web_page<<std::endl;
+    
+    std::cout<<"done"<<std::endl;
     return 0;
 }

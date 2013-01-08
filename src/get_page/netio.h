@@ -10,24 +10,24 @@ class netio
 {
     public:
     netio(std::string user_agent_string);
+    netio(std::string user_agent_string, bool enable_debug);
     ~netio();
-    bool fetch(std::string url);
+    
+    bool fetch(std::string* mem, std::string url);
     std::string last_error(void);
-    bool default_config(bool debug);
     void reset_config(void);
+    size_t store_data(char *ptr, size_t size, size_t nmemb);
 
     private:
     std::mutex lib_mutex;
     CURL* lib_handle;
     CURLcode curl_ret;
+    
     std::string user_agent;
     std::string error_buffer;
+    std::string* target_memory;
 
-    std::vector<char> header_data;
-    std::vector<char> page_data;
-
-    size_t store_header(char *ptr, size_t size, size_t nmemb, void *userp);
-    size_t store_data(char *ptr, size_t size, size_t nmemb, void *userp);
+    bool default_config(bool debug);
 };
 
 #endif
