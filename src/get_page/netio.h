@@ -3,7 +3,6 @@
 
 #include <iostream>
 #include <mutex>
-#include <vector>
 #include <curl/curl.h>
 
 class netio
