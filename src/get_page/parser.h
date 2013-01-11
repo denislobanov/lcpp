@@ -10,9 +10,10 @@ class parser
     parser(std::string start_type, std::string end_type);
     ~parser(void);
 
-    std::vector<std::string> keywords(std::string* data);
-    unsigned int search(std::string* source, std::string keyword);
-    void parse(std::string* data);
+    unsigned int extract(std::string& data, std::vector<std::string>& token_set);
+    unsigned int extract_separated(std::string& data, std::vector<std::string>& token_set, std::string deliminator, bool strip_empty);
+    unsigned int search(std::string& data, std::string keyword);
+    void parse(std::string& data);
     
     private:
     struct data_grid_s {
@@ -20,8 +21,9 @@ class parser
     };
 
     std::string tag_open;
+    size_t tag_open_offset;
     std::string tag_close;
-    std::vector<struct data_grid_s> data_grid;
+    std::vector<struct data_grid_s> data_grid;  //exlude data outside of grid
 };
 
 #endif

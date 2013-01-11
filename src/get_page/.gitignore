@@ -1,3 +1,5 @@
 *.o
 *.html
 get_page
+test_netio
+test_parser
