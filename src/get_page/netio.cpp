@@ -31,6 +31,7 @@ netio::~netio(void)
 bool netio::fetch(std::string* mem, std::string url)
 {
     target_memory = mem;
+    target_memory->clear(); //parsing implies new data
     
     //locking is needed as lib_handle cannot be used simmultaniously
     //both setting url and retrieving data must be locked for data to

@@ -36,12 +36,16 @@ int main(void)
 
     std::cout<<"searching for keywords.."<<std::endl;
     std::vector<std::string> keywords;
-    title_parser.extract_separated(web_page, keywords, " ", true);
+    unsigned int count =  title_parser.extract_separated(web_page, keywords, " \n\t", true);
+    unsigned int our_count = 0;
     std::cout<<"---"<<std::endl;
-    for(std::vector<std::string>::iterator limit = keywords.begin(); limit != keywords.end(); ++limit)
+    for(std::vector<std::string>::iterator limit = keywords.begin();
+            limit != keywords.end(); ++limit, ++our_count)
         std::cout<<*limit<<std::endl;
     std::cout<<"---"<<std::endl;
     
+    std::cout<<count<<" keywords reported, "<<our_count<<" keywords found"<<std::endl;
+
     std::cout<<"done"<<std::endl;
     return 0;
 }

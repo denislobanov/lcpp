@@ -42,14 +42,14 @@ void parser::parse(std::string& data)
 
     //parsing implies new data
     data_grid.clear();
-    std::cout<<"start parsing.."<<std::endl;
+    //~ std::cout<<"start parsing.."<<std::endl;
     while(true) {
         pos = data.find(tag_open, ++pos);
         
         if(pos != std::string::npos) {   //found something
             pos += tag_open_offset; //tag name itself should not be part of search
             //~ debug
-            std::cout<<"found an opening tag @ "<<pos<<std::endl;
+            //~ std::cout<<"found an opening tag @ "<<pos<<std::endl;
             element.start = pos;
             element.end = data.find(tag_close, pos);
             if(element.end == std::string::npos) {
@@ -57,13 +57,13 @@ void parser::parse(std::string& data)
                 element.end = 0;
             } else {
                 //~ debug
-                std::cout<<"found a closing tag @"<<element.end <<std::endl;
+                //~ std::cout<<"found a closing tag @"<<element.end <<std::endl;
             }
 
             data_grid.push_back(element);
         } else {
             //~ degbug
-            std::cout<<"end of data"<<std::endl;
+            //~ std::cout<<"end of data"<<std::endl;
             break;
         }
     }
@@ -91,8 +91,8 @@ unsigned int parser::extract_separated(std::string& data, std::vector<std::strin
 
         while(last_pos < limit->end) {
             size_t pos = data.find_first_of(deliminator, last_pos);
-            std::cout<<"grid: "<<grid_count<<" start: "<<limit->start<<" end: "<<limit->end<<std::endl;
-            std::cout<<"\tlast pos: "<<last_pos<<" pos: "<<pos<<std::endl;
+            //~ std::cout<<"grid: "<<grid_count<<" start: "<<limit->start<<" end: "<<limit->end<<std::endl;
+            //~ std::cout<<"\tlast pos: "<<last_pos<<" pos: "<<pos<<std::endl;
 
             //found something
             if(pos != std::string::npos) {
