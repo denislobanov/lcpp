@@ -7,8 +7,9 @@
 parser::parser(std::string start_type, std::string end_type)
 {
     tag_open = start_type;
-    tag_open_offset = tag_open.size();
     tag_close = end_type;
+    tag_open_offset = tag_open.size();
+    tag_close_offset = tag_close.size();
 }
 
 parser::~parser(void)
@@ -45,7 +46,7 @@ void parser::parse(std::string& data)
     //~ std::cout<<"start parsing.."<<std::endl;
     while(true) {
         pos = data.find(tag_open, ++pos);
-        
+
         if(pos != std::string::npos) {   //found something
             pos += tag_open_offset; //tag name itself should not be part of search
             //~ debug
@@ -56,6 +57,7 @@ void parser::parse(std::string& data)
                 std::cerr<<"parser::parse -failed to match tag_close in data!"<<std::endl;
                 element.end = 0;
             } else {
+                element.end -= tag_close_offset; //FIXME is this needed?  i think it wasnt
                 //~ debug
                 //~ std::cout<<"found a closing tag @"<<element.end <<std::endl;
             }
@@ -73,8 +75,8 @@ void parser::parse(std::string& data)
 unsigned int parser::extract(std::string& data, std::vector<std::string>& token_set)
 {
     unsigned int count = 0;
-    
-    for(std::vector<struct data_grid_s>::iterator limit = data_grid.begin(); limit != data_grid.end(); ++limit, ++count) 
+
+    for(std::vector<struct data_grid_s>::iterator limit = data_grid.begin(); limit != data_grid.end(); ++limit, ++count)
         token_set.push_back(data.substr(limit->start, (limit->end - limit->start)));
 
     return count;
@@ -85,7 +87,7 @@ unsigned int parser::extract_separated(std::string& data, std::vector<std::strin
 {
     unsigned int count = 0;
     unsigned int grid_count = 0;
-    
+
     for(std::vector<struct data_grid_s>::iterator limit = data_grid.begin(); limit != data_grid.end(); ++limit, ++grid_count) {
         size_t last_pos = limit->start;
 

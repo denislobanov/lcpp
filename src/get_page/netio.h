@@ -11,7 +11,7 @@ class netio
     netio(std::string user_agent_string);
     netio(std::string user_agent_string, bool enable_debug);
     ~netio();
-    
+
     bool fetch(std::string* mem, std::string url);
     std::string last_error(void);
     void reset_config(void);
@@ -21,7 +21,7 @@ class netio
     std::mutex lib_mutex;
     CURL* lib_handle;
     CURLcode curl_ret;
-    
+
     std::string user_agent;
     std::string error_buffer;
     std::string* target_memory;

@@ -10,21 +10,23 @@ int main(void)
     const std::string search_string = "geeks";
 
     std::cout<<"loading test_file.html"<<std::endl;
-    std::ifstream file("full_test_file.html");
+    std::ifstream file("test_file.html");
     std::string web_page;
 
-    file.seekg(0, std::ios::end);   
+    file.seekg(0, std::ios::end);
     web_page.reserve(file.tellg());
     file.seekg(0, std::ios::beg);
-    
+
     web_page.assign((std::istreambuf_iterator<char>(file)),
         std::istreambuf_iterator<char>());
-    
+
     std::cout<<"initialising objects"<<std::endl;
-    parser title_parser("title=\"", "\"");
+    parser link_parser("<a href=\"", "\">");
+    parser img_parser("<img src=\"", "\"");
 
     std::cout<<"parsing.."<<std::endl;
-    title_parser.parse(web_page);
+    link_parser.parse(web_page);
+    img_parser.parse(web_page);
 
 #if 0
     int i = title_parser.search(web_page, search_string);
@@ -34,18 +36,31 @@ int main(void)
         std::cout<<"title_parser failed to find any occurances of \'"<<search_string<<"\'"<<std::endl;
 #endif
 
-    std::cout<<"searching for keywords.."<<std::endl;
-    std::vector<std::string> keywords;
-    unsigned int count =  title_parser.extract_separated(web_page, keywords, " \n\t", true);
-    unsigned int our_count = 0;
-    std::cout<<"---"<<std::endl;
-    for(std::vector<std::string>::iterator limit = keywords.begin();
-            limit != keywords.end(); ++limit, ++our_count)
-        std::cout<<*limit<<std::endl;
-    std::cout<<"---"<<std::endl;
-    
-    std::cout<<count<<" keywords reported, "<<our_count<<" keywords found"<<std::endl;
+    std::cout<<"extracting data.."<<std::endl;
+    std::vector<std::string> http_links;
+    std::vector<std::string> img_links;
 
+    unsigned int http_link_count = link_parser.extract_separated(web_page, http_links, " \n\t", true);
+    unsigned int img_link_count = img_parser.extract_separated(web_page, img_links, " \n\t", true);
+
+    unsigned int our_http_count = 0;
+    unsigned int our_img_count = 0;
+    std::cout<<"==="<<std::endl;
+
+    for(std::vector<std::string>::iterator limit = http_links.begin();
+            limit != http_links.end(); ++limit, ++our_http_count)
+        std::cout<<*limit<<std::endl;
+
+    std::cout<<"---"<<std::endl;
+
+    for(std::vector<std::string>::iterator limit = img_links.begin();
+            limit != img_links.end(); ++limit, ++our_img_count)
+        std::cout<<*limit<<std::endl;
+
+    std::cout<<"==="<<std::endl;
+
+    std::cout<<http_link_count<<" page links reported, "<<our_http_count<<" page links found"<<std::endl;
+    std::cout<<img_link_count<<" image links reported, "<<our_img_count<<" image links found"<<std::endl;
     std::cout<<"done"<<std::endl;
     return 0;
 }

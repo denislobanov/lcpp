@@ -6,7 +6,7 @@
 int main(void)
 {
     std::string web_page;
-    
+
     std::cout<<"initialising objects"<<std::endl;
     netio my_netio("lcpp netio test");
 
@@ -18,7 +18,7 @@ int main(void)
     stream.open("test_file.html");
     if(stream != 0)
         stream<<web_page<<std::endl;
-    
+
     std::cout<<"done"<<std::endl;
     return 0;
 }
