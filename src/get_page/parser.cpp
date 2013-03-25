@@ -9,7 +9,12 @@ parser::parser(std::string start_type, std::string end_type)
     tag_open = start_type;
     tag_close = end_type;
     tag_open_offset = tag_open.size();
-    tag_close_offset = tag_close.size();
+    //tag_close_offset is not needed
+
+    // debug
+    //~ std::cout<<"tag_open ["<<tag_open<<"]"<<std::endl;
+    //~ std::cout<<"tag_open_offset ["<<tag_open_offset<<"]"<<std::endl;
+    //~ std::cout<<"tag_close ["<<tag_close<<"]"<<std::endl;
 }
 
 parser::~parser(void)
@@ -41,12 +46,12 @@ void parser::parse(std::string& data)
     struct data_grid_s element;
     size_t pos  = 0;
 
-    //parsing implies new data
+    //parsing implies new data, parsers can (should) be resused
     data_grid.clear();
+    //~ debug
     //~ std::cout<<"start parsing.."<<std::endl;
     while(true) {
         pos = data.find(tag_open, ++pos);
-
         if(pos != std::string::npos) {   //found something
             pos += tag_open_offset; //tag name itself should not be part of search
             //~ debug
@@ -55,16 +60,15 @@ void parser::parse(std::string& data)
             element.end = data.find(tag_close, pos);
             if(element.end == std::string::npos) {
                 std::cerr<<"parser::parse -failed to match tag_close in data!"<<std::endl;
-                element.end = 0;
+                element.end = element.start;
             } else {
-                element.end -= tag_close_offset; //FIXME is this needed?  i think it wasnt
                 //~ debug
                 //~ std::cout<<"found a closing tag @"<<element.end <<std::endl;
             }
 
             data_grid.push_back(element);
         } else {
-            //~ degbug
+            //~ debug
             //~ std::cout<<"end of data"<<std::endl;
             break;
         }
@@ -108,4 +112,11 @@ unsigned int parser::extract_separated(std::string& data, std::vector<std::strin
     }
 
     return count;
+}
+
+void parser::print_debug(std::string message)
+{
+#if defined(DEBUG_LEVEL)
+    std::cout<<message<<std::endl;
+#endif
 }

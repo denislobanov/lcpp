@@ -21,7 +21,7 @@ int main(void)
         std::istreambuf_iterator<char>());
 
     std::cout<<"initialising objects"<<std::endl;
-    parser link_parser("<a href=\"", "\">");
+    parser link_parser("<a href=\"", "\"");
     parser img_parser("<img src=\"", "\"");
 
     std::cout<<"parsing.."<<std::endl;
@@ -31,17 +31,17 @@ int main(void)
 #if 0
     int i = title_parser.search(web_page, search_string);
     if(i > 0)
-        std::cout<<"title_parser found "<<i<<" occurances of \'"<<search_string<<"\'!"<<std::endl;
+        std::cout<<"title_parser found "<<i<<" occurances of \'"<<search_string<<"\'"<<std::endl;
     else
-        std::cout<<"title_parser failed to find any occurances of \'"<<search_string<<"\'"<<std::endl;
+        std::cout<<"title_parser failed to find any occurances of \'"<<search_string<<"\'!"<<std::endl;
 #endif
 
     std::cout<<"extracting data.."<<std::endl;
     std::vector<std::string> http_links;
     std::vector<std::string> img_links;
 
-    unsigned int http_link_count = link_parser.extract_separated(web_page, http_links, " \n\t", true);
-    unsigned int img_link_count = img_parser.extract_separated(web_page, img_links, " \n\t", true);
+    unsigned int http_link_count = link_parser.extract(web_page, http_links);
+    unsigned int img_link_count = img_parser.extract(web_page, img_links);
 
     unsigned int our_http_count = 0;
     unsigned int our_img_count = 0;
