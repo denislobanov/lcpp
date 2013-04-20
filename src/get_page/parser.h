@@ -1,8 +1,6 @@
 #if !defined(PARSER_H)
 #define PARSER_H
 
-#define DEBUG_LEVEL true
-
 #include <iostream>
 #include <vector>
 
