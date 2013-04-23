@@ -30,13 +30,14 @@ netio::~netio(void)
 
 bool netio::fetch(std::string* mem, std::string url)
 {
-    target_memory = mem;
-    target_memory->clear(); //parsing implies new data
+    mem->clear(); //parsing implies new data
 
     //locking is needed as lib_handle cannot be used simmultaniously
     //both setting url and retrieving data must be locked for data to
     //coincide with url
     lib_mutex.lock();
+    target_memory = mem;
+    
     curl_easy_setopt(lib_handle, CURLOPT_URL, url.c_str());
     curl_ret = curl_easy_perform(lib_handle);
     lib_mutex.unlock();

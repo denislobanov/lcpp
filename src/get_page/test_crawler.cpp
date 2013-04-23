@@ -2,6 +2,7 @@
 #include <fstream>
 
 #include "crawler_process.h"
+#include "netio.h"
 
 int main(void)
 {
@@ -9,6 +10,8 @@ int main(void)
     search_grid urls;
     search_grid_node_s node;
     std::queue<std::string> output_urls;
+
+    netio my_netio("lcpp crawler_process unit test");
 
     //create search grids for parsers
     node.start = "<img src=\"";
@@ -22,7 +25,7 @@ int main(void)
     urls.push_back(node);
 
     //create a crawler instance;
-    crawler_process test_crawler(output_urls, keywords, urls);
+    crawler_process test_crawler(&my_netio, &output_urls, keywords, urls);
 
     enum worker_status status;
     test_crawler.get_status(status);

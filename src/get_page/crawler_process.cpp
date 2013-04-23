@@ -7,9 +7,10 @@
 #include "crawler_process.h"
 #include "parser.h"
 
-crawler_process::crawler_process(std::queue<std::string>& url_fifo, search_grid meta_grid, search_grid url_grid)
+crawler_process::crawler_process(netio* netio_object, std::queue<std::string>* url_fifo, search_grid meta_grid, search_grid url_grid)
 {
-    fifo = &url_fifo;
+    netio_obj = netio_object;
+    fifo = url_fifo;
     status = IDLE;
 
     //allocate parser thread pool per param
@@ -43,4 +44,17 @@ crawler_process::~crawler_process(void)
 void crawler_process::get_status(enum worker_status &le_status)
 {
     le_status = status;
+}
+
+void crawler_process::crawl(std::string url, struct page_node_s& page_node)
+{
+    //analysie url
+    //  -- robots.txt information from url root!!
+    
+    //fetch data
+
+    //run parsers, add compile time option for multithreading here too?
+    //  -- each worker_process should already be a thread?
+    //  -- originally each worker_process was a fork, with multiple threads
+    //      per parser
 }
