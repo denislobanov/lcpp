@@ -3,3 +3,4 @@
 get_page
 test_netio
 test_parser
+test_crawler

@@ -8,7 +8,7 @@ int main(void)
     search_grid keywords;
     search_grid urls;
     search_grid_node_s node;
-    std::queue output_urls;
+    std::queue<std::string> output_urls;
 
     //create search grids for parsers
     node.start = "<img src=\"";
@@ -22,10 +22,14 @@ int main(void)
     urls.push_back(node);
 
     //create a crawler instance;
-    crawler_process test_crawler(output_urls, keywords, url);
+    crawler_process test_crawler(output_urls, keywords, urls);
 
-    if(test_crawler.get_status != IDLE)
+    enum worker_status status;
+    test_crawler.get_status(status);
+    if(status != IDLE)
         std::cerr<<"test_crawler.get_status != IDLE"<<std::endl;
+    else
+        std::cout<<"tis fine"<<std::endl;
 
     return 0;
 }
