@@ -3,9 +3,11 @@
 #include <string>
 #include <queue>
 #include <algorithm>
+#include <functional>
 
 #include "crawler_process.h"
 #include "parser.h"
+#include "netio.h"
 
 crawler_process::crawler_process(netio* netio_object, std::queue<std::string>* url_fifo, search_grid meta_grid, search_grid url_grid)
 {
@@ -15,13 +17,13 @@ crawler_process::crawler_process(netio* netio_object, std::queue<std::string>* u
 
     //allocate parser thread pool per param
     for(search_grid::iterator entry = meta_grid.begin();
-        entry != meta_grid.end(); ++entry, ++meta_threads)
+        entry != meta_grid.end(); ++entry)
     {
         meta_parser_threads.push_back(new parser(entry->start, entry->end));
     }
 
     for(search_grid::iterator entry = url_grid.begin();
-        entry != url_grid.end(); ++entry, ++url_threads)
+        entry != url_grid.end(); ++entry)
     {
         url_parser_threads.push_back(new parser(entry->start, entry->end));
     }
@@ -50,11 +52,33 @@ void crawler_process::crawl(std::string url, struct page_node_s& page_node)
 {
     //analysie url
     //  -- robots.txt information from url root!!
+    page_node.root_hash = 0;    //WIP
+    page_node.node_hash = (uint16_t)url_hash(url);
+    page_node.cash = 0; //WIP
     
     //fetch data
+    netio_obj->fetch(&web_data, url);
+    std::cout<<"size of data retrieved: "<<web_data.size()<<std::endl;
 
     //run parsers, add compile time option for multithreading here too?
     //  -- each worker_process should already be a thread?
     //  -- originally each worker_process was a fork, with multiple threads
     //      per parser
+    for(thread_pool::iterator thread = meta_parser_threads.begin();
+        thread != meta_parser_threads.end(); ++thread)
+    {
+        unsigned int count;
+        
+        (*thread)->parse(web_data);
+        count = (*thread)->extract(web_data, page_node.meta);
+        std::cout<<"extrated "<<count<<" keywords.."<<std::endl;
+    }
+
+    for(thread_pool::iterator thread = url_parser_threads.begin();
+        thread != url_parser_threads.end(); ++thread)
+    {
+        
+        (*thread)->parse(web_data);
+        std::cout<<"parsed for urls. not doing extration cause programming is hard"<<std::endl;
+    }
 }

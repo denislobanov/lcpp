@@ -37,6 +37,7 @@ bool netio::fetch(std::string* mem, std::string url)
     //coincide with url
     lib_mutex.lock();
     target_memory = mem;
+    std::cout<<"yay, work!"<<std::endl;
     
     curl_easy_setopt(lib_handle, CURLOPT_URL, url.c_str());
     curl_ret = curl_easy_perform(lib_handle);

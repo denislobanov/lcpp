@@ -4,6 +4,8 @@
 #include <iostream>
 #include <vector>
 #include <queue>
+#include <functional>
+#include <cstdint>
 
 class parser;
 class netio;
@@ -43,8 +45,8 @@ typedef std::vector<search_grid_node_s> search_grid;
  * contains the post-crawl information about a page
  */
 struct page_node_s {
-    std::u16string root_hash;  //16 bit for memory contraint
-    std::u16string node_hash;
+    uint16_t root_hash;  //16 bit for memory constraints.
+    uint16_t node_hash;
     unsigned int cash;       //page rank
     std::vector<std::string> meta;
 };
@@ -79,8 +81,8 @@ class crawler_process
     thread_pool meta_parser_threads;
     thread_pool url_parser_threads;
     enum worker_status status;
-    unsigned int meta_threads, url_threads;
     std::string web_data;
+    std::hash<std::string> url_hash;
     
     std::queue<std::string>* fifo;
     netio* netio_obj;
