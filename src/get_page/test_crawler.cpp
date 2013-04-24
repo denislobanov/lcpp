@@ -12,7 +12,7 @@ int main(void)
     page_node_s page_node;      //contains crawl output per page
     
     std::queue<std::string> output_urls;    //more urls to crawl
-    std::string test_url = "www.geksaresexy.net";   //seed
+    std::string test_url = "www.geeksaresexy.net";   //seed
 
     netio my_netio("lcpp crawler_process unit test");   //not thread safe, we own it
 

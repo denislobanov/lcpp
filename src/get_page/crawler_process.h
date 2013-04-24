@@ -7,6 +7,8 @@
 #include <functional>
 #include <cstdint>
 
+#include "page_data.hpp"
+
 class parser;
 class netio;
 
@@ -40,16 +42,6 @@ struct search_grid_node_s {
  * a search grid is a vectore of one or more nodes
  */
 typedef std::vector<search_grid_node_s> search_grid;
-
-/**
- * contains the post-crawl information about a page
- */
-struct page_node_s {
-    uint16_t root_hash;  //16 bit for memory constraints.
-    uint16_t node_hash;
-    unsigned int cash;       //page rank
-    std::vector<std::string> meta;
-};
 
 class crawler_process
 {
