@@ -74,7 +74,7 @@ class crawler_process
     thread_pool url_parser_threads;
     enum worker_status status;
     std::string web_data;
-    std::hash<std::string> url_hash;
+    //~ std::hash<std::string> url_hash;
     
     std::queue<std::string>* fifo;
     netio* netio_obj;

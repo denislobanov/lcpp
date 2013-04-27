@@ -11,8 +11,6 @@ struct page_node_s {
     //for root pages only (top level domains)
     time_t last_visit;
     time_t timeout;
-    bool can_crawl;
-    std::vector<std::string> exclusions;
 };
 
 

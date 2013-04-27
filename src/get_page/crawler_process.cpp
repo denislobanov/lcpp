@@ -8,6 +8,10 @@
 #include "crawler_process.h"
 #include "parser.h"
 #include "netio.h"
+#include "robots_txt.hpp"
+
+//should not be needed with new database class?
+#include "page_data.hpp"
 
 crawler_process::crawler_process(netio* netio_object, std::queue<std::string>* url_fifo, search_grid meta_grid, search_grid url_grid)
 {
@@ -52,8 +56,8 @@ void crawler_process::crawl(std::string url, struct page_node_s& page_node)
 {
     //analysie url
     //  -- robots.txt information from url root!!
-    page_node.root_hash = 0;    //WIP
-    page_node.node_hash = (uint16_t)url_hash(url);
+    //~ page_node.root_hash = 0;    //WIP
+    //~ page_node.node_hash = (uint16_t)url_hash(url);
     page_node.cash = 0; //WIP
     
     //fetch data

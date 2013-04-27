@@ -26,10 +26,11 @@ class parser
      */
     unsigned int search(std::string& data, std::string keyword);
     /**
-     * create data grid. this is not done by the creator as parsers should
+     * create data grid. this is not done by the constructor as parsers should
      * be reused
      */
     void parse(std::string& data);
+    void prepair(std::string& data);
 
     private:
     struct data_grid_s {

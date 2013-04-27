@@ -1,7 +1,7 @@
 CC=clang++
 CPPFLAGS=-Wall -std=c++11 $(shell curl-config --cflags)
 INCLUDES=$(shell curl-config --libs)
-COMMON_OBJECTS=netio.o parser.o crawler_process.o
+COMMON_OBJECTS=netio.o parser.o robots_txt.o crawler_process.o
 
 all: test_crawler
 

@@ -75,6 +75,12 @@ void parser::parse(std::string& data)
     }
 }
 
+//new interface for parse()
+void parser::prepair(std::string& data)
+{
+    parse(data);
+}
+
 //use to extract urls
 unsigned int parser::extract(std::string& data, std::vector<std::string>& token_set)
 {
