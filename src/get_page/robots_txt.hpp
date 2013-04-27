@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <ctime>
+#include <vector>
 
 class netio;
 
@@ -11,6 +12,11 @@ class netio;
  * without crawling
  */
 #define REVISIT_TOO_LONG    1000
+
+/**
+ * in the venet that robots.txt does not provide a Crawl-delay: command, use this
+ */
+#define DEFAULT_CRAWL_DELAY 1
 
 class robots_txt
 {
@@ -57,7 +63,11 @@ class robots_txt
     time_t crawl_delay_time;
 
     void parse(std::string& data);
-    bool line_is_comment(std::string& data, size_t pos);
+    size_t line_is_comment(std::string& data, size_t pos);
+    size_t line_length(std::string& data, size_t pos);
+    bool match_agent(std::string& data, size_t pos, size_t eol);
+    std::string get_param(std::string& data, size_t pos, size_t eol, std::string param, std::string deliminator);
+    size_t process_instruction(std::string& data, size_t pos, size_t eol);
 };
 
 #endif
