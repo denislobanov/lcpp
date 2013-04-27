@@ -7,7 +7,7 @@ all: $(COMMON_OBJECTS)
 	$(CC) $(CPPFLAGS) $(INCLUDES) $(COMMON_OBJECTS) -o test_compare
 
 clean:
-	rm -f $(COMMON_OBJECTS)
+	rm -f $(COMMON_OBJECTS) test_compare
 
 %.o : %.cpp
 ifeq ($(CC),clang++)

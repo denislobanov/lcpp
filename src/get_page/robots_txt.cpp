@@ -2,6 +2,7 @@
 #include <ctime>
 #include <sstream>  //convert int to string
 #include <vector>
+#include <algorithm>    //std::remove, to remove '*' from exlusion_list
 
 #include "robots_txt.hpp"
 #include "netio.h"
@@ -30,12 +31,20 @@ void robots_txt::refresh(netio& netio_obj)
     parse(temp_data);
 }
 
-bool robots_txt::excluded_dir(std::string& path)
+bool robots_txt::exclude(std::string& path)
 {
     if(!can_crawl)
-        return false;
-    else
-        return false; //WIP
+        return true;
+
+    for(std::vector<std::string>::iterator it = exclusion_list.begin();
+        it != exclusion_list.end(); ++it)
+    {
+        size_t ret = path.compare(0, path.size(), *it, 0, it->size());
+        if((ret == 0)||(ret == it->size()))
+            return true;
+    }
+
+    return false;
 }
 
 //checks if line is a comment
@@ -83,6 +92,13 @@ std::string robots_txt::get_param(std::string& data, size_t pos, size_t eol, std
     return 0;
 }
 
+//removed all bad_char from string data
+void robots_txt::sanitize(std::string& data, std::string bad_char)
+{
+    for(unsigned int i = 0; i < bad_char.length(); ++i)
+        data.erase(std::remove(data.begin(), data.end(), bad_char[i]), data.end());
+}
+
 //should be called after a 'User-agent:' field has been matched and identified
 //returns position of last instruction within User-agent block
 size_t robots_txt::process_instruction(std::string& data, size_t pos, size_t eol)
@@ -94,11 +110,13 @@ size_t robots_txt::process_instruction(std::string& data, size_t pos, size_t eol
             std::string res;
 
             if((res = get_param(data, pos, eol, "Disallow:", " \t\n")).size() > 0) {
-                if((res == "/")||(res == "*"))
+                if((res == "/")||(res == "*")) {
                     can_crawl = false;
-                else
+                } else {
+                    //workaround: remove astrix charecter as I cant regex
+                    sanitize(data, "*");
                     exclusion_list.push_back(res);
-
+                }
                 last_good_pos = pos;
 
             } else if((res = get_param(data, pos, eol, "Crawl-delay:", " \t\n")).size() > 0) {

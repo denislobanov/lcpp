@@ -3,13 +3,14 @@ CPPFLAGS=-Wall -std=c++11 $(shell curl-config --cflags)
 INCLUDES=$(shell curl-config --libs)
 COMMON_OBJECTS=netio.o parser.o robots_txt.o crawler_process.o
 
-all: test_crawler
+all: test_netio test_parser test_crawler test_robots_txt
 
 get_page: $(COMMON_OBJECTS)
 	$(CC) $(CPPFLAGS) $(INCLUDES) $(COMMON_OBJECTS) -o get_page
 
 clean:
 	rm -f $(COMMON_OBJECTS)
+	rm -f *.o
 
 test_netio: $(COMMON_OBJECTS) test_netio.o
 	$(CC) $(CPPFLAGS) $(INCLUDES) $(COMMON_OBJECTS) test_netio.o -o test_netio
@@ -19,6 +20,9 @@ test_parser: $(COMMON_OBJECTS) test_parser.o
 
 test_crawler: $(COMMON_OBJECTS) test_crawler.o
 	$(CC) $(CPPFLAGS) $(INCLUDES) -I shared_ptr  $(COMMON_OBJECTS) test_crawler.o -o test_crawler
+
+test_robots_txt: $(COMMON_OBJECTS) test_robots_txt.o
+	$(CC) $(CPPFLAGS) $(INCLUDES) -I shared_ptr  $(COMMON_OBJECTS) test_robots_txt.o -o test_robots_txt
 
 
 %.o : %.cpp

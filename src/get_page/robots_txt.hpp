@@ -40,7 +40,7 @@ class robots_txt
      * checks if path (usually url) is within the exclusion list
      * (robots.txt "Dissalow: ")
      */
-    bool excluded_dir(std::string& path);
+    bool exclude(std::string& path);
     
     /**
      * how long to wait before recrawls
@@ -68,6 +68,7 @@ class robots_txt
     bool match_agent(std::string& data, size_t pos, size_t eol);
     std::string get_param(std::string& data, size_t pos, size_t eol, std::string param, std::string deliminator);
     size_t process_instruction(std::string& data, size_t pos, size_t eol);
+    void sanitize(std::string& data, std::string bad_char);
 };
 
 #endif
