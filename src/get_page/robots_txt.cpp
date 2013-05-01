@@ -11,7 +11,7 @@ robots_txt::robots_txt(netio& netio_obj, std::string user_agent, std::string roo
 {
     agent_name = user_agent;
     domain = root_domain;
-    
+
     std::string temp_data;
     netio_obj.fetch(&temp_data, domain+"/robots.txt");
     parse(temp_data);
@@ -25,7 +25,7 @@ robots_txt::~robots_txt(void)
 void robots_txt::refresh(netio& netio_obj)
 {
     std::string temp_data;
-    
+
     exclusion_list.clear();
     netio_obj.fetch(&temp_data, domain+"/robots.txt");
     parse(temp_data);
@@ -53,36 +53,43 @@ size_t robots_txt::line_is_comment(std::string& data, size_t pos)
     if(pos > 0)
         if(data.compare(--pos, 1, "#") == 0)
             return true;
-            
+
     return false;
 }
 
-//finds end-of-line (eol,  '\n'), subtracts pos
-//does not consider whitespace for user agent fields..
-size_t robots_txt::line_length(std::string& data, size_t pos)
+//finds end-of-line (eol,  '\n')
+//does not consider whitespace, for user agent fields..
+size_t robots_txt::line_end(std::string& data, size_t pos)
 {
-    return data.find("\n", pos) - pos;
+    return data.find("\n", pos);
 }
 
 bool robots_txt::match_agent(std::string& data, size_t pos, size_t eol)
 {
     //ignore first whitespace after 'User-agent:'
-    if(data.compare(++pos, 1, "*") == 0)
+    if(data.compare(++pos, 1, "*") == 0) {
+        std::cout<<"robots_txt::match_agent *"<<std::endl;
         return true;
-    
-    size_t res = data.compare(pos, eol, agent_name);
-    if((res == 0)||(res == agent_name.size()))
+    }
+
+    size_t res = data.compare(pos, eol-pos, agent_name); //eol-pos = line length
+    if((res == 0)||(res == agent_name.size())) {
+        std::cout<<"robots_txt::match_agent "<<agent_name<<std::endl;
         return true;
-    else
+    } else {
+        std::cout<<"robots_txt::match_agent no match"<<std::endl;
         return false;
+    }
 }
 
 //returns substring of param, modifies eol (based on deliminator)
 std::string robots_txt::get_param(std::string& data, size_t pos, size_t eol, std::string param, std::string deliminator)
 {
     size_t param_length = param.size();
-    
-    size_t ret = data.compare(pos, eol, param);
+
+    std::cout<<"robots_txt::get_param pos = "<<pos<<" eol = "<<eol<<std::endl;
+
+    size_t ret = data.compare(pos, eol-pos, param);
     if((ret == 0)||(ret == param_length)) {
         //generate new eol, as urls cant have whiletspace
         eol = data.find_first_of(deliminator, pos) - pos;
@@ -104,7 +111,8 @@ void robots_txt::sanitize(std::string& data, std::string bad_char)
 size_t robots_txt::process_instruction(std::string& data, size_t pos, size_t eol)
 {
     size_t last_good_pos = pos;
-    
+
+    std::cout<<"robots_txt::process_instruction pos = "<<pos<<" eol = "<<eol<<std::endl;
     while(pos < data.size()) {
         if(!line_is_comment(data, pos)) {
             std::string res;
@@ -122,7 +130,7 @@ size_t robots_txt::process_instruction(std::string& data, size_t pos, size_t eol
             } else if((res = get_param(data, pos, eol, "Crawl-delay:", " \t\n")).size() > 0) {
                 int res_int;
                 std::stringstream str(res);
-                
+
                 str >> res_int;
                 if(!str)
                     crawl_delay_time = DEFAULT_CRAWL_DELAY;
@@ -138,7 +146,7 @@ size_t robots_txt::process_instruction(std::string& data, size_t pos, size_t eol
 
         //got to next line
         pos = ++eol;
-        eol = line_length(data, pos);
+        eol = line_end(data, pos);
     }
 
     return last_good_pos;
@@ -147,29 +155,34 @@ size_t robots_txt::process_instruction(std::string& data, size_t pos, size_t eol
 void robots_txt::parse(std::string& data)
 {
     size_t data_size = data.size();
-    
-    //site does not have a robots.txt or failed to retrieve one..
+
+    //site does not have a robots.txt or failed to retrieve one
     if(data_size == 0) {
         // set defaults
         can_crawl = true;
         crawl_delay_time = DEFAULT_CRAWL_DELAY;
     } else {
+        std::cout<<"robots_txt::parse::got data"<<std::endl;
         // parse
         std::string user_agent_field = "User-agent:";
         size_t user_agent_size = user_agent_field.size();
         size_t pos = 0;
-        
+
         while(pos < data_size) {
+            std::cout<<"robots_txt::parse::while(pos < data_size) pos = "<<pos<<std::endl;
             pos = data.find(user_agent_field, pos);
 
             //found something
             if(pos != std::string::npos) {
                 if(!line_is_comment(data, pos)) {
+                    std::cout<<"robots_txt::parse::data valid, pos = "<<pos<<std::endl;
                     //tokenize by '\n'
-                    size_t eol = line_length(data, pos);
-                    
+                    size_t eol = line_end(data, pos);
+                    std::cout<<"robots_txt::parse::line_end pos = "<<pos<<" eol = "<<eol<<std::endl;
+
                     //applicable to us?
                     if(match_agent(data, pos+user_agent_size, eol)) {
+                        std::cout<<"robots_txt::parse::user agent match, pos = "<<pos<<" eol = "<<eol<<std::endl;
                         pos = eol + 1;  //skip over "User-agent:" line
                         pos = process_instruction(data, pos, eol);
                     }
@@ -200,7 +213,7 @@ void robots_txt::export_exclusions(std::vector<std::string>& data)
 {
     exclusion_list = data;
 }
-    
+
 
 
 

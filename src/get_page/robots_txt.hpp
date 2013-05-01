@@ -64,7 +64,7 @@ class robots_txt
 
     void parse(std::string& data);
     size_t line_is_comment(std::string& data, size_t pos);
-    size_t line_length(std::string& data, size_t pos);
+    size_t line_end(std::string& data, size_t pos);
     bool match_agent(std::string& data, size_t pos, size_t eol);
     std::string get_param(std::string& data, size_t pos, size_t eol, std::string param, std::string deliminator);
     size_t process_instruction(std::string& data, size_t pos, size_t eol);

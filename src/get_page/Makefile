@@ -5,12 +5,12 @@ COMMON_OBJECTS=netio.o parser.o robots_txt.o crawler_process.o
 
 all: test_netio test_parser test_crawler test_robots_txt
 
-get_page: $(COMMON_OBJECTS)
-	$(CC) $(CPPFLAGS) $(INCLUDES) $(COMMON_OBJECTS) -o get_page
-
 clean:
 	rm -f $(COMMON_OBJECTS)
+
+mrproper: clean
 	rm -f *.o
+	rm -f test_netio test_parser test_crawler test_robots_txt
 
 test_netio: $(COMMON_OBJECTS) test_netio.o
 	$(CC) $(CPPFLAGS) $(INCLUDES) $(COMMON_OBJECTS) test_netio.o -o test_netio
