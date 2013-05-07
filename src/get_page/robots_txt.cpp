@@ -50,9 +50,13 @@ bool robots_txt::exclude(std::string& path)
 //checks if line is a comment
 size_t robots_txt::line_is_comment(std::string& data, size_t pos)
 {
-    if(pos > 0)
-        if(data.compare(--pos, 1, "#") == 0)
+    std::cout<<"robots_txt::line_is_comment pos = "<<pos<<std::endl;
+    if(pos > 0) {
+        if(data.compare(pos, 1, "#") == 0)
             return true;
+        else if(data.compare(--pos, 1, "#") == 0)
+            return true;
+    }
 
     return false;
 }
@@ -83,18 +87,24 @@ bool robots_txt::match_agent(std::string& data, size_t pos, size_t eol)
 }
 
 //returns substring of param, modifies eol (based on deliminator)
-std::string robots_txt::get_param(std::string& data, size_t pos, size_t eol, std::string param, std::string deliminator)
+size_t robots_txt::get_param(std::string& data, size_t pos, size_t& eol, std::string param, std::string deliminator)
 {
     size_t param_length = param.size();
 
     std::cout<<"robots_txt::get_param pos = "<<pos<<" eol = "<<eol<<std::endl;
+    std::cout<<"robots_txt::get_param param ["<<param<<"] delim ["<<deliminator<<"]"<<std::endl;
+    std::cout<<"robots_txt::get_param data.substr ["<<data.substr(pos, eol-pos)<<"]"<<std::endl;
 
     size_t ret = data.compare(pos, eol-pos, param);
+    std::cout<<"robots_txt::get_param ret = "<<ret<<std::endl;
+    std::cout<<"robots_txt::get_param param_length = "<<param_length<<std::endl;
     if((ret == 0)||(ret == param_length)) {
         //generate new eol, as urls cant have whiletspace
         eol = data.find_first_of(deliminator, pos) - pos;
         return data.substr(pos+param_length, eol);
     }
+
+    std::cout<<"robots_txt::get_param returning 0"<<std::endl;
 
     return 0;
 }
@@ -113,11 +123,12 @@ size_t robots_txt::process_instruction(std::string& data, size_t pos, size_t eol
     size_t last_good_pos = pos;
 
     std::cout<<"robots_txt::process_instruction pos = "<<pos<<" eol = "<<eol<<std::endl;
-    while(pos < data.size()) {
+    while(pos < data.length()) {
         if(!line_is_comment(data, pos)) {
             std::string res;
 
             if((res = get_param(data, pos, eol, "Disallow:", " \t\n")).size() > 0) {
+                std::cout<<"fail"<<std::endl;
                 if((res == "/")||(res == "*")) {
                     can_crawl = false;
                 } else {
@@ -142,6 +153,7 @@ size_t robots_txt::process_instruction(std::string& data, size_t pos, size_t eol
             } else {
                 break;
             }
+            std::cout<<"bleh"<<std::endl;
         }
 
         //got to next line
@@ -184,6 +196,7 @@ void robots_txt::parse(std::string& data)
                     if(match_agent(data, pos+user_agent_size, eol)) {
                         std::cout<<"robots_txt::parse::user agent match, pos = "<<pos<<" eol = "<<eol<<std::endl;
                         pos = eol + 1;  //skip over "User-agent:" line
+                        eol = line_end(data, pos);
                         pos = process_instruction(data, pos, eol);
                     }
                 }
