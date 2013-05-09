@@ -86,15 +86,17 @@ bool robots_txt::match_agent(std::string& data, size_t pos, size_t eol)
     }
 }
 
-//returns substring of param, modifies eol (based on deliminator)
-bool robots_txt::get_param(std::string& data, size_t pos, size_t& eol, std::string param, std::string deliminator, std::string& result)
+//searches &data within [pos, eol] constraints for param match
+// if match found returns true, &result is set to parameter value
+// else returns false
+bool robots_txt::get_param(std::string& data, size_t pos, size_t eol, std::string param, std::string& result)
 {
     size_t param_length = param.size();
 
     //FIXME: debug
     std::cout<<"robots_txt::get_param pos = "<<pos<<" eol = "<<eol<<std::endl;
     std::cout<<"robots_txt::get_param data.substr ["<<data.substr(pos, eol-pos)<<"]"<<std::endl;
-        std::cout<<"robots_txt::get_param param ["<<param<<"] delim ["<<deliminator<<"]"<<std::endl;
+    std::cout<<"robots_txt::get_param param ["<<param<<"]"<<std::endl;
 
     size_t ret = data.compare(pos, eol-pos, param);
     //FIXME: debug
@@ -121,7 +123,8 @@ void robots_txt::sanitize(std::string& data, std::string bad_char)
 }
 
 //should be called after a 'User-agent:' field has been matched and identified
-//returns position of last instruction within User-agent block
+// pos and eol determine a line (ending in '\n') within &data
+// returns position of last instruction within User-agent block
 size_t robots_txt::process_instruction(std::string& data, size_t pos, size_t eol)
 {
     size_t last_good_pos = pos;
@@ -130,13 +133,13 @@ size_t robots_txt::process_instruction(std::string& data, size_t pos, size_t eol
     while(pos < data.length()) {
         if(!line_is_comment(data, pos)) {
             std::string res;
-
+            
             if(get_param(data, pos, eol, "Disallow:", " \t\n", res)) {
                 std::cout<<"fail"<<std::endl;
                 if((res == "/")||(res == "*")) {
                     can_crawl = false;
                 } else {
-                    //workaround: remove astrix charecter as I cant regex
+                    //workaround: remove astrix charecter as I can /NOT/ regex
                     sanitize(data, "*");
                     exclusion_list.push_back(res);
                 }
@@ -185,12 +188,12 @@ void robots_txt::parse(std::string& data)
         size_t pos = 0;
 
         while(pos < data_size) {
-            std::cout<<"robots_txt::parse::while(pos < data_size) pos = "<<pos<<std::endl;
-            pos = data.find(user_agent_field, pos);
+            std::cout<<"------\nrobots_txt::parse::while(pos < data_size) pos = "<<pos<<std::endl;
+            if(!line_is_comment(data, pos)) {
+                pos = data.find(user_agent_field, pos);
 
-            //found something
-            if(pos != std::string::npos) {
-                if(!line_is_comment(data, pos)) {
+                //found something
+                if(pos != std::string::npos) {
                     std::cout<<"robots_txt::parse::data valid, pos = "<<pos<<std::endl;
                     //tokenize by '\n'
                     size_t eol = line_end(data, pos);
@@ -203,14 +206,15 @@ void robots_txt::parse(std::string& data)
                         eol = line_end(data, pos);
                         pos = process_instruction(data, pos, eol);
                     }
+                    ++pos;
+                    
+                } else {
+                    //robots.txt exists but doesnt apply to us
+                    //set defaults and quit
+                    can_crawl = true;
+                    crawl_delay_time = DEFAULT_CRAWL_DELAY;
+                    break;
                 }
-                ++pos;
-            } else {
-                //robots.txt exists but doesnt apply to us
-                //set defaults and quit
-                can_crawl = true;
-                crawl_delay_time = DEFAULT_CRAWL_DELAY;
-                break;
             }
         }
     }
