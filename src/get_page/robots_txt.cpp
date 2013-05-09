@@ -50,11 +50,10 @@ bool robots_txt::exclude(std::string& path)
 //checks if line is a comment
 size_t robots_txt::line_is_comment(std::string& data, size_t pos)
 {
-    std::cout<<"robots_txt::line_is_comment pos = "<<pos<<std::endl;
-    if(pos > 0) {
+    if(pos >= 0) {
         if(data.compare(pos, 1, "#") == 0)
             return true;
-        else if(data.compare(--pos, 1, "#") == 0)
+        else if(data.compare(pos, 1, "\n") == 0)
             return true;
     }
 
@@ -81,7 +80,6 @@ bool robots_txt::match_agent(std::string& data, size_t pos, size_t eol)
         std::cout<<"robots_txt::match_agent "<<agent_name<<std::endl;
         return true;
     } else {
-        std::cout<<"robots_txt::match_agent no match"<<std::endl;
         return false;
     }
 }
@@ -91,25 +89,19 @@ bool robots_txt::match_agent(std::string& data, size_t pos, size_t eol)
 // else returns false
 bool robots_txt::get_param(std::string& data, size_t pos, size_t eol, std::string param, std::string& result)
 {
-    size_t param_length = param.size();
+    size_t param_length = param.length();
 
     //FIXME: debug
-    std::cout<<"robots_txt::get_param pos = "<<pos<<" eol = "<<eol<<std::endl;
-    std::cout<<"robots_txt::get_param data.substr ["<<data.substr(pos, eol-pos)<<"]"<<std::endl;
-    std::cout<<"robots_txt::get_param param ["<<param<<"]"<<std::endl;
+    std::cout<<"robots_txt::get_param pos = "<<pos<<" eol = "<<eol<<" pos+param_length = "<<pos+param_length<<std::endl;
+    std::cout<<"robots_txt::get_param data ["<<data.substr(pos, eol-pos)<<"]"<<" param ["<<param<<"]"<<std::endl;
 
-    size_t ret = data.compare(pos, eol-pos, param);
-    //FIXME: debug
-    std::cout<<"robots_txt::get_param ret = "<<ret<<std::endl;
-    std::cout<<"robots_txt::get_param param_length = "<<param_length<<std::endl;
-    
-    if((ret == 0)||(ret == param_length)) {
-        //generate new eol, as urls cant have whitespace
-        eol = data.find_first_of(deliminator, pos) - pos;
-        result = data.substr(pos+param_length, eol);
+    size_t ret = data.compare(pos, param_length, param);
+    if(ret == 0) {
+        result = data.substr(pos+param_length, eol-(pos+param_length));
+        std::cout<<"robots_txt::get_param result ["<<result<<"]"<<std::endl;
         return true;
     }
-    
+
     //FIXME: debug
     std::cout<<"robots_txt::get_param returning false"<<std::endl;
     return false;
@@ -133,9 +125,13 @@ size_t robots_txt::process_instruction(std::string& data, size_t pos, size_t eol
     while(pos < data.length()) {
         if(!line_is_comment(data, pos)) {
             std::string res;
-            
-            if(get_param(data, pos, eol, "Disallow:", " \t\n", res)) {
-                std::cout<<"fail"<<std::endl;
+
+            if(get_param(data, pos, eol, "Disallow:", res)) {
+                //strip whitespace
+                sanitize(res, " ");
+                std::cout<<"res ["<<res<<"]"<<std::endl;
+
+                //shortcut complete bans
                 if((res == "/")||(res == "*")) {
                     can_crawl = false;
                 } else {
@@ -145,7 +141,7 @@ size_t robots_txt::process_instruction(std::string& data, size_t pos, size_t eol
                 }
                 last_good_pos = pos;
 
-            } else if(get_param(data, pos, eol, "Crawl-delay:", " \t\n", res)) {
+            } else if(get_param(data, pos, eol, "Crawl-delay:", res)) {
                 int res_int;
                 std::stringstream str(res);
 
@@ -160,13 +156,17 @@ size_t robots_txt::process_instruction(std::string& data, size_t pos, size_t eol
             } else {
                 break;
             }
-            std::cout<<"bleh"<<std::endl;
+            std::cout<<"~~~"<<std::endl;
+        } else {
+            std::cout<<"line is a comment!"<<std::endl;
         }
 
         //got to next line
-        pos = ++eol;
-        eol = line_end(data, pos);
+        pos = eol;
+        eol = line_end(data, pos+1);
     }
+
+    std::cout<<"pos = "<<pos<<" data.length = "<<data.length()<<std::endl;
 
     return last_good_pos;
 }
@@ -190,31 +190,36 @@ void robots_txt::parse(std::string& data)
         while(pos < data_size) {
             std::cout<<"------\nrobots_txt::parse::while(pos < data_size) pos = "<<pos<<std::endl;
             if(!line_is_comment(data, pos)) {
+                std::cout<<"!line_is_comment @ "<<pos<<std::endl;
                 pos = data.find(user_agent_field, pos);
 
                 //found something
                 if(pos != std::string::npos) {
-                    std::cout<<"robots_txt::parse::data valid, pos = "<<pos<<std::endl;
                     //tokenize by '\n'
                     size_t eol = line_end(data, pos);
-                    std::cout<<"robots_txt::parse::line_end pos = "<<pos<<" eol = "<<eol<<std::endl;
+                    std::cout<<"robots_txt::parse::line_end pos = "<<pos<<" eol = "<<eol<<" ["<<data.substr(pos, eol-pos)<<"]"<<std::endl;
 
                     //applicable to us?
                     if(match_agent(data, pos+user_agent_size, eol)) {
-                        std::cout<<"robots_txt::parse::user agent match, pos = "<<pos<<" eol = "<<eol<<std::endl;
-                        pos = eol + 1;  //skip over "User-agent:" line
+                        //FIXME: debug
+                        std::cout<<"robots_txt::parse pos = "<<pos<<" eol = "<<eol<<std::endl;
+
+                        pos = ++eol;  //skip over "User-agent:" line
                         eol = line_end(data, pos);
                         pos = process_instruction(data, pos, eol);
                     }
                     ++pos;
-                    
+
                 } else {
+                    std::cout<<"pos = std::string::npos"<<std::endl;
                     //robots.txt exists but doesnt apply to us
                     //set defaults and quit
                     can_crawl = true;
                     crawl_delay_time = DEFAULT_CRAWL_DELAY;
                     break;
                 }
+            } else {
+                pos = line_end(data, pos);
             }
         }
     }
