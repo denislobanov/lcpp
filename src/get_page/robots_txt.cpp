@@ -87,26 +87,30 @@ bool robots_txt::match_agent(std::string& data, size_t pos, size_t eol)
 }
 
 //returns substring of param, modifies eol (based on deliminator)
-size_t robots_txt::get_param(std::string& data, size_t pos, size_t& eol, std::string param, std::string deliminator)
+bool robots_txt::get_param(std::string& data, size_t pos, size_t& eol, std::string param, std::string deliminator, std::string& result)
 {
     size_t param_length = param.size();
 
+    //FIXME: debug
     std::cout<<"robots_txt::get_param pos = "<<pos<<" eol = "<<eol<<std::endl;
-    std::cout<<"robots_txt::get_param param ["<<param<<"] delim ["<<deliminator<<"]"<<std::endl;
     std::cout<<"robots_txt::get_param data.substr ["<<data.substr(pos, eol-pos)<<"]"<<std::endl;
+        std::cout<<"robots_txt::get_param param ["<<param<<"] delim ["<<deliminator<<"]"<<std::endl;
 
     size_t ret = data.compare(pos, eol-pos, param);
+    //FIXME: debug
     std::cout<<"robots_txt::get_param ret = "<<ret<<std::endl;
     std::cout<<"robots_txt::get_param param_length = "<<param_length<<std::endl;
+    
     if((ret == 0)||(ret == param_length)) {
-        //generate new eol, as urls cant have whiletspace
+        //generate new eol, as urls cant have whitespace
         eol = data.find_first_of(deliminator, pos) - pos;
-        return data.substr(pos+param_length, eol);
+        result = data.substr(pos+param_length, eol);
+        return true;
     }
-
-    std::cout<<"robots_txt::get_param returning 0"<<std::endl;
-
-    return 0;
+    
+    //FIXME: debug
+    std::cout<<"robots_txt::get_param returning false"<<std::endl;
+    return false;
 }
 
 //removed all bad_char from string data
@@ -127,7 +131,7 @@ size_t robots_txt::process_instruction(std::string& data, size_t pos, size_t eol
         if(!line_is_comment(data, pos)) {
             std::string res;
 
-            if((res = get_param(data, pos, eol, "Disallow:", " \t\n")).size() > 0) {
+            if(get_param(data, pos, eol, "Disallow:", " \t\n", res)) {
                 std::cout<<"fail"<<std::endl;
                 if((res == "/")||(res == "*")) {
                     can_crawl = false;
@@ -138,7 +142,7 @@ size_t robots_txt::process_instruction(std::string& data, size_t pos, size_t eol
                 }
                 last_good_pos = pos;
 
-            } else if((res = get_param(data, pos, eol, "Crawl-delay:", " \t\n")).size() > 0) {
+            } else if(get_param(data, pos, eol, "Crawl-delay:", " \t\n", res)) {
                 int res_int;
                 std::stringstream str(res);
 
