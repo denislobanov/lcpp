@@ -18,6 +18,6 @@ int main(void)
     my_robots_txt.export_exclusions(exclusions_list);
     for(std::vector<std::string>::iterator it = exclusions_list.begin(); it != exclusions_list.end(); ++it)
         std::cout<<*it<<std::endl;
-    
+
     return 0;
 }

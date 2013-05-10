@@ -59,7 +59,7 @@ void crawler_process::crawl(std::string url, struct page_node_s& page_node)
     //~ page_node.root_hash = 0;    //WIP
     //~ page_node.node_hash = (uint16_t)url_hash(url);
     page_node.cash = 0; //WIP
-    
+
     //fetch data
     netio_obj->fetch(&web_data, url);
     std::cout<<"size of data retrieved: "<<web_data.size()<<std::endl;
@@ -72,7 +72,7 @@ void crawler_process::crawl(std::string url, struct page_node_s& page_node)
         thread != meta_parser_threads.end(); ++thread)
     {
         unsigned int count;
-        
+
         (*thread)->parse(web_data);
         count = (*thread)->extract(web_data, page_node.meta);
         std::cout<<"extrated "<<count<<" keywords.."<<std::endl;
@@ -81,7 +81,7 @@ void crawler_process::crawl(std::string url, struct page_node_s& page_node)
     for(thread_pool::iterator thread = url_parser_threads.begin();
         thread != url_parser_threads.end(); ++thread)
     {
-        
+
         (*thread)->parse(web_data);
         std::cout<<"parsed for urls. not doing extration cause programming is hard"<<std::endl;
     }

@@ -224,7 +224,3 @@ void robots_txt::export_exclusions(std::vector<std::string>& data)
 {
     data = exclusion_list;
 }
-
-
-
-

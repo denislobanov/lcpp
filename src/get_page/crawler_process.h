@@ -45,7 +45,7 @@ typedef std::vector<search_grid_node_s> search_grid;
 
 class crawler_process
 {
-    public:    
+    public:
     /**
      * url_fifo will only be written to. parent process reads work
      * from fifo to crawler instances
@@ -75,7 +75,7 @@ class crawler_process
     enum worker_status status;
     std::string web_data;
     //~ std::hash<std::string> url_hash;
-    
+
     std::queue<std::string>* fifo;
     netio* netio_obj;
 };

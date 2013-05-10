@@ -10,7 +10,7 @@ int main(void)
     search_grid urls;           // search grid of nodes for urls (for output_urls)
     search_grid_node_s node;    // a single search grid node, used to compose grids
     page_node_s page_node;      //contains crawl output per page
-    
+
     std::queue<std::string> output_urls;    //more urls to crawl
     std::string test_url = "www.geeksaresexy.net";   //seed
 

@@ -33,4 +33,4 @@ else
 	$(CC) $(CPPFLAGS) $(INCLUDES) -c $<
 endif
 
-.PHONY: all clean 
+.PHONY: all clean
