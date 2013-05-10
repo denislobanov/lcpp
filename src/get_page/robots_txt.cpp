@@ -5,7 +5,7 @@
 #include <algorithm>
 
 //FIXME: debug
-#include <fstream>
+//~ #include <fstream>
 
 #include "robots_txt.hpp"
 #include "netio.h"
@@ -26,20 +26,20 @@ robots_txt::~robots_txt(void)
 
 void robots_txt::refresh(netio& netio_obj)
 {
-    //~ std::string temp_data;
+    std::string temp_data;
 
     //(re)set defaults
     exclusion_list.clear();
     can_crawl = true;
     crawl_delay_time = DEFAULT_CRAWL_DELAY;
 
-    //~ netio_obj.fetch(&temp_data, domain+"/robots.txt");
-    std::fstream debug_file;
-    debug_file.open("robots.txt");
+    netio_obj.fetch(&temp_data, domain+"/robots.txt");
+    //~ std::fstream debug_file;
+    //~ debug_file.open("robots.txt");
+//~
+    //~ std::string temp_data((std::istreambuf_iterator<char>(debug_file)),
+                           //~ std::istreambuf_iterator<char>());
 
-    std::string temp_data((std::istreambuf_iterator<char>(debug_file)),
-                           std::istreambuf_iterator<char>());
-    
     parse(temp_data);
 }
 
@@ -87,7 +87,8 @@ bool robots_txt::get_param(std::string& lc_data, size_t& pos, size_t& eol, std::
 {
     size_t param_length = param.length();
 
-    std::cout<<"robots_txt::get_param()"<<std::endl;
+    //~ FIXME: debug
+    //~ std::cout<<"robots_txt::get_param()"<<std::endl;
 
     size_t ret = lc_data.compare(pos, param_length, param);
     if(ret == 0) {
@@ -96,15 +97,15 @@ bool robots_txt::get_param(std::string& lc_data, size_t& pos, size_t& eol, std::
         //skip over whitespace until param value is found
         while((lc_data.compare(pos, 1, " ") == 0)&&(pos < eol))
             ++pos;
-        
+
         while((lc_data.compare(eol, 1, " ") == 0)&&(eol > pos))
             --eol;
         return true;
     }
 
-    //~ debug
-    std::cout<<"\t lc_data ["<<lc_data<<"]\n  does not compare to\n\tparam ["<<param<<"]"<<std::endl;
-    
+    //~ FIXME: debug
+    //~ std::cout<<"\t lc_data ["<<lc_data<<"]\n  does not compare to\n\tparam ["<<param<<"]"<<std::endl;
+
     return false;
 }
 
@@ -123,16 +124,19 @@ void robots_txt::process_instruction(std::string& data, std::string& lc_data, si
     //match param field
     if(get_param(lc_data, pos, eol, "user-agent:")) {
         if(data.compare(pos, 1, "*") == 0) {
+            //~  FIXME: debug
             std::cout<<"robots_txt::process_instruction * AGENT_MATCH *"<<std::endl;
             process_param = true;
-        
+
         } else if(agent_name.size() < eol-pos) {
             if (data.compare(pos, agent_name.size(), agent_name) == 0) {
+                //~  FIXME: debug
                 std::cout<<"robots_txt::process_instruction  AGENT_MATCH "<<agent_name<<std::endl;
                 process_param = true;
             }
         } else {
-            std::cout<<"AGENT_UNMATCH"<<std::endl;
+            //~  FIXME: debug
+            //~ std::cout<<"AGENT_UNMATCH"<<std::endl;
             process_param = false;
         }
     }
@@ -181,7 +185,7 @@ void robots_txt::parse(std::string& data)
             if(!line_is_comment(line)) {
                 size_t pos = 0;
                 size_t eol = line.length();
-                
+
                 //find offset to first bit of non whitespace char
                 //this should never reach eol due to line_is_comment call
                 while((data.compare(pos, 1, " ") == 0)&&(pos < eol))
@@ -198,7 +202,7 @@ void robots_txt::parse(std::string& data)
                 std::transform(lc_line.begin(), lc_line.end(), lc_line.begin(), ::tolower);
 
                 //FIXME: debug
-                std::cout<<"line ["<<line<<"] lc_line ["<<lc_line<<"]"<<std::endl;
+                //~ std::cout<<"line ["<<line<<"] lc_line ["<<lc_line<<"]"<<std::endl;
 
                 process_instruction(line, lc_line, pos, eol);
             }

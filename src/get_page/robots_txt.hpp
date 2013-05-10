@@ -43,7 +43,7 @@ class robots_txt
      * (robots.txt "Dissalow: ")
      */
     bool exclude(std::string& path);
-    
+
     /**
      * how long to wait before recrawls
      */
@@ -59,7 +59,7 @@ class robots_txt
     private:
     bool can_crawl; //if crawler's completely banned or a whitelist policy is used
     bool process_param;
-    
+
     std::string agent_name;
     std::string domain;
     std::vector<std::string> exclusion_list;
