@@ -20,13 +20,6 @@ class netio;
 
 #define MAX_DATA_SIZE 500*1024  //500k
 
-enum process_state {
-    AGENT_MATCH,
-    AGENT_MISMATCH,
-    OK,
-    FAIL
-};
-    
 class robots_txt
 {
     public:
@@ -75,7 +68,7 @@ class robots_txt
     void parse(std::string& data);
     size_t line_is_comment(std::string& data);
     bool get_param(std::string& lc_data, size_t& pos, size_t& eol, std::string param);
-    process_state process_instruction(std::string& data, std::string& lc_data, size_t pos, size_t eol);
+    void process_instruction(std::string& data, std::string& lc_data, size_t pos, size_t eol);
     void sanitize(std::string& data, std::string bad_char);
 };
 

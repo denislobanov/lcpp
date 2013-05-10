@@ -1,9 +1,8 @@
 #include <iostream>
-#include <sstream>  //stringstream for line orientated parsing
+#include <sstream>
 #include <ctime>
-#include <sstream>  //convert int to string
 #include <vector>
-#include <algorithm>    //std::remove, to remove '*' from exlusion_list
+#include <algorithm>
 
 //FIXME: debug
 #include <fstream>
@@ -80,14 +79,6 @@ size_t robots_txt::line_is_comment(std::string& data)
     return false;
 }
 
-static char lower_case(char c)
-{
-    if(std::isupper(c))
-        return std::tolower(c);
-    else
-        return c;
-}
-
 //matches lower case param representation in lc_data, if found pos and eol
 //are modified to represent the data after the param without whitespace
 //  and returns true
@@ -111,7 +102,8 @@ bool robots_txt::get_param(std::string& lc_data, size_t& pos, size_t& eol, std::
         return true;
     }
 
-    std::cout<<"lc_data ["<<lc_data<<"]\ndoes not compare to\nparam ["<<param<<"]"<<std::endl;
+    //~ debug
+    std::cout<<"\t lc_data ["<<lc_data<<"]\n  does not compare to\n\tparam ["<<param<<"]"<<std::endl;
     
     return false;
 }
@@ -126,29 +118,27 @@ void robots_txt::sanitize(std::string& data, std::string bad_char)
 //should be called after a 'User-agent:' field has been matched and identified
 // pos and eol determine a line (ending in '\n') within &data
 // returns position of last instruction within User-agent block
-process_state robots_txt::process_instruction(std::string& data, std::string& lc_data, size_t pos, size_t eol)
+void robots_txt::process_instruction(std::string& data, std::string& lc_data, size_t pos, size_t eol)
 {
-    process_state ret = OK;
-    std::cout<<"robots_txt::process_instruction data ["<<data<<"] lc_data ["<<lc_data<<"]"<<std::endl;
-
     //match param field
     if(get_param(lc_data, pos, eol, "user-agent:")) {
         if(data.compare(pos, 1, "*") == 0) {
-            std::cout<<"robots_txt::process_instruction * AGENT_MATCH *"<<agent_name<<std::endl;
-            ret = AGENT_MATCH;
+            std::cout<<"robots_txt::process_instruction * AGENT_MATCH *"<<std::endl;
+            process_param = true;
         
         } else if(agent_name.size() < eol-pos) {
             if (data.compare(pos, agent_name.size(), agent_name) == 0) {
-                std::cout<<"robots_txt::process_instruction  AGENT_MATCH"<<agent_name<<std::endl;
-                ret = AGENT_MATCH;
+                std::cout<<"robots_txt::process_instruction  AGENT_MATCH "<<agent_name<<std::endl;
+                process_param = true;
             }
         } else {
-            ret = AGENT_MISMATCH;
+            std::cout<<"AGENT_UNMATCH"<<std::endl;
+            process_param = false;
         }
     }
 
     else if(process_param) { //found matching agent
-        if(get_param(lc_data, pos, eol, "dissalow:")) {
+        if(get_param(lc_data, pos, eol, "disallow:")) {
             std::string value = data.substr(pos, eol-pos);
 
             //wildcard handling
@@ -168,12 +158,8 @@ process_state robots_txt::process_instruction(std::string& data, std::string& lc
                 crawl_delay_time = DEFAULT_CRAWL_DELAY;
             else
                 crawl_delay_time = int_value;
-        } else {
-            ret = FAIL;
         }
     }
-
-    return ret;
 }
 
 void robots_txt::parse(std::string& data)
@@ -208,25 +194,13 @@ void robots_txt::parse(std::string& data)
                 }
 
                 //create an all lowercase line for param field matching
-                std::string lc_line;
-                std::transform(line.begin(), line.end(), lc_line.begin(), lower_case);
+                std::string lc_line = line;
+                std::transform(lc_line.begin(), lc_line.end(), lc_line.begin(), ::tolower);
 
-                process_state res = process_instruction(line, lc_line, pos, eol);
+                //FIXME: debug
+                std::cout<<"line ["<<line<<"] lc_line ["<<lc_line<<"]"<<std::endl;
 
-                switch(res) {
-                case AGENT_MATCH:
-                    process_param = true;
-                    break;
-                case AGENT_MISMATCH:
-                    process_param = false;
-                    break;
-                case OK:
-                    break;
-                case FAIL:
-                    std::cerr<<"robots_txt::parse() process_instruction returned FAIL"<<std::endl;
-                    exit(-1);
-                    break;
-                }
+                process_instruction(line, lc_line, pos, eol);
             }
         }
     }
@@ -239,12 +213,12 @@ time_t robots_txt::crawl_delay(void)
 
 void robots_txt::import_exclusions(std::vector<std::string>& data)
 {
-    data = exclusion_list;
+    exclusion_list = data;
 }
 
 void robots_txt::export_exclusions(std::vector<std::string>& data)
 {
-    exclusion_list = data;
+    data = exclusion_list;
 }
 
 
