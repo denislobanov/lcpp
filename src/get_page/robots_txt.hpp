@@ -20,6 +20,13 @@ class netio;
 
 #define MAX_DATA_SIZE 500*1024  //500k
 
+enum process_state {
+    AGENT_MATCH,
+    AGENT_MISMATCH,
+    OK,
+    FAIL
+};
+    
 class robots_txt
 {
     public:
@@ -58,6 +65,7 @@ class robots_txt
 
     private:
     bool can_crawl; //if crawler's completely banned or a whitelist policy is used
+    bool process_param;
     
     std::string agent_name;
     std::string domain;
@@ -65,11 +73,9 @@ class robots_txt
     time_t crawl_delay_time;
 
     void parse(std::string& data);
-    size_t line_is_comment(std::string& data, size_t pos);
-    size_t line_end(std::string& data, size_t pos);
-    bool match_agent(std::string& data, size_t pos, size_t eol);
-    bool get_param(std::string& data, size_t pos, size_t eol, std::string param, std::string& result);
-    size_t process_instruction(std::string& data, size_t pos, size_t eol);
+    size_t line_is_comment(std::string& data);
+    bool get_param(std::string& lc_data, size_t& pos, size_t& eol, std::string param);
+    process_state process_instruction(std::string& data, std::string& lc_data, size_t pos, size_t eol);
     void sanitize(std::string& data, std::string bad_char);
 };
 
