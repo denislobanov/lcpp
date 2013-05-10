@@ -18,6 +18,8 @@ class netio;
  */
 #define DEFAULT_CRAWL_DELAY 1
 
+#define MAX_DATA_SIZE 500*1024  //500k
+
 class robots_txt
 {
     public:

@@ -1,4 +1,5 @@
 #include <iostream>
+#include <sstream>  //stringstream for line orientated parsing
 #include <ctime>
 #include <sstream>  //convert int to string
 #include <vector>
@@ -12,9 +13,7 @@ robots_txt::robots_txt(netio& netio_obj, std::string user_agent, std::string roo
     agent_name = user_agent;
     domain = root_domain;
 
-    std::string temp_data;
-    netio_obj.fetch(&temp_data, domain+"/robots.txt");
-    parse(temp_data);
+    refresh(netio_obj);
 }
 
 robots_txt::~robots_txt(void)
@@ -48,13 +47,19 @@ bool robots_txt::exclude(std::string& path)
 }
 
 //checks if line is a comment
-size_t robots_txt::line_is_comment(std::string& data, size_t pos)
+size_t robots_txt::line_is_comment(std::string& data)
 {
-    if(pos >= 0) {
-        if(data.compare(pos, 1, "#") == 0)
-            return true;
-        else if(data.compare(pos, 1, "\n") == 0)
-            return true;
+    size_t pos = 0;
+
+    if(data.size > 0) {
+        do {
+            if(data[pos] == "#")
+                return true;
+            else if(data[pos] == "\n")
+                return true;
+            else if(data[pos] != " ")
+                return false;
+        } while((data[++pos] == " ")&&(pos < data.size()));
     }
 
     return false;
@@ -67,21 +72,49 @@ size_t robots_txt::line_end(std::string& data, size_t pos)
     return data.find("\n", pos);
 }
 
-bool robots_txt::match_agent(std::string& data, size_t pos, size_t eol)
-{
-    //ignore first whitespace after 'User-agent:'
-    if(data.compare(++pos, 1, "*") == 0) {
-        std::cout<<"robots_txt::match_agent *"<<std::endl;
-        return true;
-    }
 
-    size_t res = data.compare(pos, eol-pos, agent_name); //eol-pos = line length
-    if((res == 0)||(res == agent_name.size())) {
-        std::cout<<"robots_txt::match_agent "<<agent_name<<std::endl;
-        return true;
-    } else {
+bool robots_txt::match_agent(std::string& data)
+{
+    size_t pos = 0;
+    size_t eol = data.size();
+
+    //ignore leading whitespace, this should never reach eol due to line_is_comment call
+    while(data[pos] == " ")
+        ++pos;
+
+    //edge case, should never happen as line is not a comment
+    if(pos >= eol) {
+        std::cerr<<"robots_txt::match_agent pos >= data.size()"<<std:endl;
         return false;
     }
+
+    lowercase_data = data;
+    lowercase_data.tolower();
+    
+    if((pos = lowercase_data.find("user-agent:", pos)) != std::npos) {
+        //found User-agent field
+        while((data[pos] == " ")&&(pos < eol))
+            ++pos;
+
+        if(pos == eol)
+            return false;
+        
+        //need case sensitive matches after param match
+        if(data.compare(pos, 1, "*") == 0) {
+            std::cout<<"robots_txt::match_agent *"<<std::endl;
+            return true;
+        }
+
+        //enought of line left for agent name field
+        if(agent_name.size() < eol-pos) {
+            if (data.compare(pos, agent_name.size(), agent_name) == 0) {
+                std::cout<<"robots_txt::match_agent "<<agent_name<<std::endl;
+                return true;
+            }
+        }
+    }
+
+    return false;
 }
 
 //searches &data within [pos, eol] constraints for param match
@@ -117,7 +150,7 @@ void robots_txt::sanitize(std::string& data, std::string bad_char)
 //should be called after a 'User-agent:' field has been matched and identified
 // pos and eol determine a line (ending in '\n') within &data
 // returns position of last instruction within User-agent block
-size_t robots_txt::process_instruction(std::string& data, size_t pos, size_t eol)
+size_t robots_txt::process_instruction(std::string& data)
 {
     size_t last_good_pos = pos;
 
@@ -180,17 +213,30 @@ void robots_txt::parse(std::string& data)
         // set defaults
         can_crawl = true;
         crawl_delay_time = DEFAULT_CRAWL_DELAY;
+    } else if(data_size > MAX_DATA_SIZE) {
+        std::cerr<<"data_size > MAX_DATA_SIZE"<<std::endl;
     } else {
         std::cout<<"robots_txt::parse::got data"<<std::endl;
-        // parse
-        std::string user_agent_field = "User-agent:";
-        size_t user_agent_size = user_agent_field.size();
-        size_t pos = 0;
 
-        while(pos < data_size) {
-            std::cout<<"------\nrobots_txt::parse::while(pos < data_size) pos = "<<pos<<std::endl;
-            if(!line_is_comment(data, pos)) {
-                std::cout<<"!line_is_comment @ "<<pos<<std::endl;
+        std::stringstream stream(data);
+        std::string user_agent_field = "User-agent:";
+        std::string line;
+        size_t user_agent_size = user_agent_field.size();
+
+        while(std::getline(stream, line)) {
+            if(!line_is_comment(line)) {
+                
+                if(match_agent(line)) {
+                    
+                    //process instruction should hange User-agent fields too.
+                    //compares must be case insensitive!
+                    process_instruction
+
+
+
+
+
+                
                 pos = data.find(user_agent_field, pos);
 
                 //found something
@@ -218,8 +264,6 @@ void robots_txt::parse(std::string& data)
                     crawl_delay_time = DEFAULT_CRAWL_DELAY;
                     break;
                 }
-            } else {
-                pos = line_end(data, pos);
             }
         }
     }
