@@ -4,14 +4,29 @@
 #include <vector>
 #include <ctime>
 
-struct page_node_s {
-    unsigned int cash;       //page rank
+#include "robots_txt.hpp"
+
+/**
+ * describes an entry to pass to caching/db mechanism
+ */
+struct page_data_s {
+    std::string url;
+    unsigned int cash;              //page rank
     std::vector<std::string> meta;  //keywords associated with page
+    std::string description;        //short blob about page
 
     //for root pages only (top level domains)
     time_t last_visit;
-    time_t timeout;
+    time_t crawl_delay;
+    robots_txt robots;
 };
 
+/**
+ * describes an entry in the crawl (IPC) queue
+ */
+struct queue_node_s {
+    unsigned int credit;    //cash given to link from referring page
+    std::string url;
+};
 
 #endif

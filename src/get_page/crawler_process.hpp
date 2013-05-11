@@ -60,7 +60,7 @@ class crawler_process
      *
      * urls found during the crawl are automattically appended to queue specified on object creation
      */
-    void crawl(std::string url, struct page_node_s& page_node); //may sleep
+    void crawl(std::string url, struct page_data_s& page_node); //may sleep
 
     /**
      * returns status of crawler process, value will be one of worker_status enum

@@ -52,7 +52,7 @@ void crawler_process::get_status(enum worker_status &le_status)
     le_status = status;
 }
 
-void crawler_process::crawl(std::string url, struct page_node_s& page_node)
+void crawler_process::crawl(std::string url, struct page_data_s& page_node)
 {
     //analysie url
     //  -- robots.txt information from url root!!
