@@ -29,14 +29,14 @@ void robots_txt::refresh(netio& netio_obj)
     std::string temp_data;
 
     //(re)set defaults
-    exclusion_list.clear();
+    disallow_list.clear();
+    allow_list.clear();
     can_crawl = true;
     crawl_delay_time = DEFAULT_CRAWL_DELAY;
 
     netio_obj.fetch(&temp_data, domain+"/robots.txt");
     //~ std::fstream debug_file;
     //~ debug_file.open("robots.txt");
-//~
     //~ std::string temp_data((std::istreambuf_iterator<char>(debug_file)),
                            //~ std::istreambuf_iterator<char>());
 
@@ -48,15 +48,7 @@ bool robots_txt::exclude(std::string& path)
     if(!can_crawl)
         return true;
 
-    for(std::vector<std::string>::iterator it = exclusion_list.begin();
-        it != exclusion_list.end(); ++it)
-    {
-        size_t ret = path.compare(0, path.size(), *it, 0, it->size());
-        if((ret == 0)||(ret == it->size()))
-            return true;
-    }
-
-    return false;
+    return std::find(disallow_list.begin(), disallow_list.end(), path) != disallow_list.end();
 }
 
 //checks if line is a comment
@@ -125,18 +117,22 @@ void robots_txt::process_instruction(std::string& data, std::string& lc_data, si
     if(get_param(lc_data, pos, eol, "user-agent:")) {
         if(data.compare(pos, 1, "*") == 0) {
             //~  FIXME: debug
-            std::cout<<"robots_txt::process_instruction * AGENT_MATCH *"<<std::endl;
+            //~ std::cout<<"robots_txt::process_instruction * AGENT_MATCH *"<<std::endl;
             process_param = true;
 
         } else if(agent_name.size() < eol-pos) {
             if (data.compare(pos, agent_name.size(), agent_name) == 0) {
                 //~  FIXME: debug
-                std::cout<<"robots_txt::process_instruction  AGENT_MATCH "<<agent_name<<std::endl;
+                //~ std::cout<<"robots_txt::process_instruction  AGENT_MATCH "<<agent_name<<std::endl;
                 process_param = true;
+            } else {
+                //~  FIXME: debug
+                //~ std::cout<<"AGENT_UNMATCH"<<std::endl;
+                process_param = false;
             }
+
         } else {
-            //~  FIXME: debug
-            //~ std::cout<<"AGENT_UNMATCH"<<std::endl;
+            std::cerr<<"agent_name.size() > eol-pos"<<std::endl;
             process_param = false;
         }
     }
@@ -150,7 +146,7 @@ void robots_txt::process_instruction(std::string& data, std::string& lc_data, si
                 can_crawl = false;
             } else {
                 sanitize(value, "*"); //workaround: remove astrix charecter as I can /NOT/ regex
-                exclusion_list.push_back(value);
+                disallow_list.push_back(value);
             }
         } else if(get_param(lc_data, pos, eol, "crawl-delay:")) {
             int int_value;
@@ -162,6 +158,22 @@ void robots_txt::process_instruction(std::string& data, std::string& lc_data, si
                 crawl_delay_time = DEFAULT_CRAWL_DELAY;
             else
                 crawl_delay_time = int_value;
+        } else if(get_param(lc_data, pos, eol, "allow:")) {
+            std::string value = data.substr(pos, eol-pos);
+
+            if(value == "/") {
+                can_crawl = true;
+            } else if(value == "*") {
+                can_crawl = true;
+                value = "/";    //same effect, '*' are sanitized
+            }
+
+            //push_back always to prune disallow_list
+            sanitize(value, "*");
+            allow_list.push_back(value);
+
+            //~ FIXME: debug
+            //~ std::cout<<"robots_txt::process_instruction found allow value ["<<value<<"]"<<std::endl;
         }
     }
 }
@@ -207,6 +219,24 @@ void robots_txt::parse(std::string& data)
                 process_instruction(line, lc_line, pos, eol);
             }
         }
+
+        //prune disallow_list
+        if(allow_list.size() > 0) {
+            //~ FIXME: debug
+            //~ std::cout<<"--------\tpruning disallow_list\t--------"<<std::endl;
+
+            disallow_list.erase(std::remove_if(disallow_list.begin(), disallow_list.end(),
+                    [&, this](std::string& s) -> bool {
+                        //iterate through allow_list vector, return true if s matches.
+                        for(std::vector<std::string>::iterator it = allow_list.begin(); it != allow_list.end(); ++it)
+                            if(s.compare(0, it->size(), *it) == 0)
+                                return true;
+
+                        return false;
+                    }),
+                disallow_list.end()
+            );
+        }
     }
 }
 
@@ -217,10 +247,10 @@ time_t robots_txt::crawl_delay(void)
 
 void robots_txt::import_exclusions(std::vector<std::string>& data)
 {
-    exclusion_list = data;
+    disallow_list = data;
 }
 
 void robots_txt::export_exclusions(std::vector<std::string>& data)
 {
-    data = exclusion_list;
+    data = disallow_list;
 }

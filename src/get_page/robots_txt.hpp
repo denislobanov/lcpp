@@ -62,7 +62,8 @@ class robots_txt
 
     std::string agent_name;
     std::string domain;
-    std::vector<std::string> exclusion_list;
+    std::vector<std::string> disallow_list;
+    std::vector<std::string> allow_list;
     time_t crawl_delay_time;
 
     void parse(std::string& data);
