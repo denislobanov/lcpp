@@ -56,6 +56,11 @@ class robots_txt
     void import_exclusions(std::vector<std::string>& data);
     void export_exclusions(std::vector<std::string>& data);
 
+    /**
+     * returns true if sitemap present, data set to sitemap url
+     */
+    bool sitemap(std::string& data);
+
     private:
     bool can_crawl; //if crawler's completely banned or a whitelist policy is used
     bool process_param;
@@ -65,6 +70,7 @@ class robots_txt
     std::vector<std::string> disallow_list;
     std::vector<std::string> allow_list;
     time_t crawl_delay_time;
+    std::string sitemap_url;
 
     void parse(std::string& data);
     size_t line_is_comment(std::string& data);

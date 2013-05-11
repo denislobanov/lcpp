@@ -192,6 +192,10 @@ void robots_txt::process_instruction(std::string& data, std::string& lc_data, si
             allow_list.push_back(value);
 
             dbg_1<<"robots_txt::process_instruction found allow value ["<<value<<"]"<<std::endl;
+        } else if(get_param(lc_data, pos, eol, "sitemap:")) {
+            std::string value = data.substr(pos, eol-pos);
+
+            sitemap_url = value;
         }
     }
 }
@@ -269,4 +273,14 @@ void robots_txt::import_exclusions(std::vector<std::string>& data)
 void robots_txt::export_exclusions(std::vector<std::string>& data)
 {
     data = disallow_list;
+}
+
+bool robots_txt::sitemap(std::string& data)
+{
+    if (sitemap_url.size() > 0) {
+        data = sitemap_url;
+        return true;
+    }
+    
+    return false;
 }
