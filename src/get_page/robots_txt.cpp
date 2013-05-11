@@ -48,7 +48,14 @@ bool robots_txt::exclude(std::string& path)
     if(!can_crawl)
         return true;
 
-    return std::find(disallow_list.begin(), disallow_list.end(), path) != disallow_list.end();
+    size_t pos = domain.length();
+        
+    for(std::vector<std::string>::iterator it = disallow_list.begin(); it != disallow_list.end(); ++it) {
+        if(path.compare(pos, it->size(), *it) == 0)
+            return true;
+    }
+
+    return false;
 }
 
 //checks if line is a comment

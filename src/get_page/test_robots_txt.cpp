@@ -20,5 +20,13 @@ int main(void)
     for(std::vector<std::string>::iterator it = exclusions_list.begin(); it != exclusions_list.end(); ++it)
         std::cout<<*it<<std::endl;
 
+    std::string test_path = "www.geeksaresexy.net/feed/blahblahblah.html";
+    std::cout<<"test_path ["<<test_path<<"] ";
+    if(my_robots_txt.exclude(test_path))
+        std::cout<<"is excluded";
+    else
+        std::cout<<"is NOT excluded";
+    std::cout<<std::endl;
+    
     return 0;
 }
