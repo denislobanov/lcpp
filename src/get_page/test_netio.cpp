@@ -1,7 +1,7 @@
 #include <iostream>
 #include <fstream>
 
-#include "netio.h"
+#include "netio.hpp"
 
 int main(void)
 {

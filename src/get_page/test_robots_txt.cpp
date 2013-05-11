@@ -3,7 +3,7 @@
 #include <vector>
 
 #include "robots_txt.hpp"
-#include "netio.h"
+#include "netio.hpp"
 
 int main(void)
 {

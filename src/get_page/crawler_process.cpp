@@ -5,9 +5,9 @@
 #include <algorithm>
 #include <functional>
 
-#include "crawler_process.h"
-#include "parser.h"
-#include "netio.h"
+#include "crawler_process.hpp"
+#include "parser.hpp"
+#include "netio.hpp"
 #include "robots_txt.hpp"
 
 //should not be needed with new database class?

@@ -3,7 +3,7 @@
 #include <streambuf>
 #include <vector>
 
-#include "parser.h"
+#include "parser.hpp"
 
 int main(void)
 {

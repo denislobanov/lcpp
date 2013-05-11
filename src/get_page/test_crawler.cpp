@@ -1,8 +1,8 @@
 #include <iostream>
 #include <fstream>
 
-#include "crawler_process.h"
-#include "netio.h"
+#include "crawler_process.hpp"
+#include "netio.hpp"
 
 int main(void)
 {

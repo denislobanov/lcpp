@@ -5,7 +5,7 @@
 #include <algorithm>
 
 #include "robots_txt.hpp"
-#include "netio.h"
+#include "netio.hpp"
 
 //Local defines
 #if (defined(DEBUG))&&(DEBUG > 2)

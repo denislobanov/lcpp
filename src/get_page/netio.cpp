@@ -3,7 +3,7 @@
 #include <vector>
 #include <curl/curl.h>
 
-#include "netio.h"
+#include "netio.hpp"
 
 netio::netio(std::string user_agent_string)
 {
