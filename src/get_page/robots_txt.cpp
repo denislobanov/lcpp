@@ -4,7 +4,11 @@
 #include <vector>
 #include <algorithm>
 
-#if (defined(DEBUG))&&(DEBUG > 1)
+#include "robots_txt.hpp"
+#include "netio.h"
+
+//Local defines
+#if (defined(DEBUG))&&(DEBUG > 2)
 #include <fstream>
 #endif
 
@@ -19,9 +23,6 @@
     #define dbg 0 && std::cout
     #define dbg_1 0 && std::cout
 #endif
-
-#include "robots_txt.hpp"
-#include "netio.h"
 
 robots_txt::robots_txt(netio& netio_obj, std::string user_agent, std::string root_domain)
 {
@@ -45,7 +46,7 @@ void robots_txt::refresh(netio& netio_obj)
     can_crawl = true;
     crawl_delay_time = DEFAULT_CRAWL_DELAY;
 
-#if (defined(DEBUG))&&(DEBUG > 1)
+#if (defined(DEBUG))&&(DEBUG > 2)
     //for debug, use file instead
     std::fstream debug_file;
     debug_file.open("robots.txt");
@@ -156,6 +157,14 @@ void robots_txt::process_instruction(std::string& data, std::string& lc_data, si
         }
     }
 
+    //sitemap directive has file (instead of user-agent) scope
+    else if(get_param(lc_data, pos, eol, "sitemap:")) {
+        std::string value = data.substr(pos, eol-pos);
+
+        sitemap_url = value;
+        dbg<<"sitemap: ["<<value<<"]"<<std::endl;
+    }
+
     else if(process_param) { //found matching agent
         if(get_param(lc_data, pos, eol, "disallow:")) {
             std::string value = data.substr(pos, eol-pos);
@@ -192,10 +201,6 @@ void robots_txt::process_instruction(std::string& data, std::string& lc_data, si
             allow_list.push_back(value);
 
             dbg_1<<"robots_txt::process_instruction found allow value ["<<value<<"]"<<std::endl;
-        } else if(get_param(lc_data, pos, eol, "sitemap:")) {
-            std::string value = data.substr(pos, eol-pos);
-
-            sitemap_url = value;
         }
     }
 }
