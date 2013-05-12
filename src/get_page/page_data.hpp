@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <ctime>
+#include <mutex>
 
 #include "robots_txt.hpp"
 
@@ -11,7 +12,7 @@
  */
 struct page_data_s {
     std::string url;
-    unsigned int cash;              //page rank
+    unsigned int rank;
     std::vector<std::string> meta;  //keywords associated with page
     std::string description;        //short blob about page
 
@@ -19,6 +20,9 @@ struct page_data_s {
     time_t last_visit;
     time_t crawl_delay;
     robots_txt robots;
+
+    //book keeping
+    std::mutex access_lock; //only one thread may access at a time
 };
 
 /**
