@@ -2,7 +2,8 @@
 #define CACHE_H
 
 #include <iostream>
-#include <ctime>
+#include <unordered_map>
+#include <time.h>
 #include <mutex>
 
 #include "page_data.hpp"
@@ -20,12 +21,11 @@ class database;
 
 /**
  * part of the cache control mechanism
- *  delta is the page rank or last access time in seconds since the unix epoch
- *  url is the page url use to perform key lookup in cache
  */
 struct cache_control_s {
-    unsigned int delta; //lowest pri/last cache time
-    std::string url;
+    page_data_s& lowest_entry;  //lowest priority/least frequent
+    std::mutex rw_mutex;
+    unsigned int fill;          //#cache entries
 };
 
 typedef std::unordered_map<std::string, struct page_data_s*> cache_map_t;
@@ -35,9 +35,9 @@ typedef std::unordered_map<std::string, struct page_data_s*> cache_map_t;
  *  -- later to be threaded, this becomes part of internal ipc
  */
 enum cache_task {
-    PRUNE_PC,
-    EVAL_PC,
-    PRUNE_FC
+    PRUNE_PCACHE,
+    EVAL_PCACHE,
+    PRUNE_FCACHE
 };
 
 
@@ -47,6 +47,8 @@ enum cache_task {
  *
  * class handles all dynamic memory allocation (both for page structures
  * and via robots_txt allocation)
+ *
+ * NB: only priority cache is currently implemented.
  */
 class cache
 {
@@ -68,23 +70,16 @@ class cache
     private:
     //tune in the future to specify minimum # of initial buckets
     cache_map_t priority_cache;
-    cache_map_t frequent_cache;
-    
-    //cache control var
-    std::mutex priority_cache_mutex;
     struct cache_control_s priority_ctl;
-    unsigned int priority_cache_fill;
-    
-    std::mutex frequent_cache_mutex;
-    std::vector<struct cache_control_s> frequent_ctl;
-    unsigned int frequent_cache_fill;
+
+    cache_map_t frequent_cache;
 
     //to pass to robots_txt classes.
     netio* netio_obj;
     database* database_obj;
 
-    void cache_housekeeping_nt(cache_task task, std::string& url, struct page_data_s* page);
-    
+    //non-threaded
+    void cache_housekeeping(cache_task task, std::string& url, struct page_data_s* page);
 };
 
 #endif

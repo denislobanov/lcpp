@@ -1,5 +1,7 @@
 #include <iostream>
 #include <unordered_map>
+#include <time.h>
+#include <mutex>
 
 #include "cache.hpp"
 
@@ -27,21 +29,22 @@ cache::cache(void)
 }
 
 //non threading version. assumes locks have already been aquired.
-void cache::cache_housekeeping_nt(cache_task task, std::string& url, struct page_data_s* page)
+void cache::cache_housekeeping(cache_task task, std::string& url, struct page_data_s* page)
 {
     switch(task) {
-    case PRUNE_PC:
+    case PRUNE_PCACHE:
         //remove from cache
         if(page->rank < priority_ctl.delta) {
             priority_cache.erase(url);
             --priority_cache_fill;
         }
         break;
-    case EVAL_PC:
+    case EVAL_PCACHE:
         //go through cache, find lowest rank
         break;
-    case PRUNE_FC:
+    case PRUNE_FCACHE:
         //tbd
+        dbg<<"PRUNE_FCACHE - frequent access caching not supported"<<std::end;
         break;
     default:
         std::cerr<<"cache::cache_housekeeping_nt given unknown task"<<std::endl;
@@ -53,29 +56,18 @@ struct page_data_s* cache::get_page(std::string& url)
     struct page_data_s* page_data;
 
     //both getting and putting pages in cache have to be atomic
-    priority_cache_mutex.lock();
+    priority_ctl.rw_mutex.lock();
     
     //check priority cache first
     cache_map_t::iterator pri_node = priority_cache.find(url);
     if(pri_node != priority_cache.end()) {
         page_data = &pri_node->second;
 
-        cache_housekeeping_nt(PRUNE_PRIOIRTY, url, page_data);
+        cache_housekeeping(PRUNE_PCACHE, url, page_data);
 
-    } else {
-        frequent_cache_mutex.lock();
-        
-        cache_map_t::iterator freq_node = frequent_cache.find(url);
-        if(freq_node != frequent_cache.end()) {
-            page_data = &freq_node->second;
-
-            cache_housekeeping_nt(PRUNE_FREQUENT, url, page_data);
-        }
-        
-        frequent_cache_mutex.unlock();
     }
     
-    priority_cache_mutex.unlock();
+    priority_ctl.rw_mutex.unlock();
 
     //not in cache, try db
     if(page_data == 0) {
@@ -108,7 +100,7 @@ void cache::put_page(std::string& url, struct page_data_s* page_data)
 
         priority_cache.insert(page_data->url)
 
-            
+    } else if()
 
 }
 

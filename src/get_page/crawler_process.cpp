@@ -58,7 +58,7 @@ void crawler_process::crawl(std::string url, struct page_data_s& page_node)
     //  -- robots.txt information from url root!!
     //~ page_node.root_hash = 0;    //WIP
     //~ page_node.node_hash = (uint16_t)url_hash(url);
-    page_node.cash = 0; //WIP
+    page_node.rank = 0; //WIP
 
     //fetch data
     netio_obj->fetch(&web_data, url);
