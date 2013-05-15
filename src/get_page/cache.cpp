@@ -1,9 +1,9 @@
 #include <iostream>
 #include <unordered_map>
-#include <time.h>
 #include <mutex>
 
 #include "cache.hpp"
+#include "page_data.hpp"
 
 //Local defines
 #if defined(DEBUG)
@@ -20,7 +20,7 @@
 
 cache::cache(netio* netio_object, database* database_object)
 {
-
+    n
 }
 
 cache::cache(void)
@@ -71,36 +71,37 @@ struct page_data_s* cache::get_page(std::string& url)
 
     //not in cache, try db
     if(page_data == 0) {
-        page_data = database.get_page(url); //has its own locking
+        page_data = database_obj->get_page(url); //has its own locking
 
-        if(page_data != 0) {
-            //we have a page, lock its in-use mutex
-            page_data->access_lock.lock();
-        } else {
-            //allocate new page
+        if(page_data == 0) //allocate new page
             page_data = new(page_data_s);
-            page_data.access_lock.lock();
-        }
     }
+
+    //we have a page, lock its in-use mutex
+    page_data->access_lock.lock();
 
     return page_data;
 }
 
+//page access lock assumed
 void cache::put_page(std::string& url, struct page_data_s* page_data)
 {
     std::pair<std::string, struct page_data_s*> page (url, page_data);
     
-    priority_cache_mutex.lock();
+    priority_ctl.rw_mutex.lock();
+    page_data->access_lock.unlock();
 
-    if(page_data->rank > priority_ctl.delta) {
-        if(priority_cache_fill >= PC_UPPER_WATERMARK) {
+    if(page_data->rank > priority_ctl.lowest_entry.rank) {
+        if(priority_ctl.fill >= PC_UPPER_WATERMARK) {
             //will need to remove existing page
-            priority_cache.erase(priority_ctl.url);
+            priority_cache.erase(priority_ctl.lowest_entry.url);
         }
 
-        priority_cache.insert(page_data->url)
+        priority_cache.insert(page);
+    }
+    priority_ctl.rw_mutex.unlock();
 
-    } else if()
-
+    //send to db
+    database_obj->put_page(url, page_data);
 }
 

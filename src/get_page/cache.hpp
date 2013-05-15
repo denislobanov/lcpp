@@ -3,7 +3,6 @@
 
 #include <iostream>
 #include <unordered_map>
-#include <time.h>
 #include <mutex>
 
 #include "page_data.hpp"

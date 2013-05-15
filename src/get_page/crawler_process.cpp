@@ -52,6 +52,13 @@ void crawler_process::get_status(enum worker_status &le_status)
     le_status = status;
 }
 
+size_t crawler_process::root_domain(std::string& url)
+{
+    //  0123456
+    // "http://" next "/" is at the end of the root url
+    return url.find_first_of("/", 7);
+}
+
 void crawler_process::crawl(std::string url, struct page_data_s& page_node)
 {
     //analysie url

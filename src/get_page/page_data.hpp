@@ -2,7 +2,7 @@
 #define PAGE_DATA_H
 
 #include <vector>
-#include <ctime>
+#include <time.h>
 #include <mutex>
 
 #include "robots_txt.hpp"
@@ -22,7 +22,7 @@ struct page_data_s {
     robots_txt robots;
 
     //book keeping
-    std::mutex access_lock; //only one thread may access at a time
+    std::mutex access_lock; //only one thread may access at a time, managed by cache class
 };
 
 /**
