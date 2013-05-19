@@ -61,6 +61,9 @@ size_t crawler_process::root_domain(std::string& url)
 
 void crawler_process::crawl(std::string url, struct page_data_s& page_node)
 {
+
+//needs refactoring once cache and database are define
+#if 0
     //analysie url
     //  -- robots.txt information from url root!!
     //~ page_node.root_hash = 0;    //WIP
@@ -92,4 +95,5 @@ void crawler_process::crawl(std::string url, struct page_data_s& page_node)
         (*thread)->parse(web_data);
         std::cout<<"parsed for urls. not doing extration cause programming is hard"<<std::endl;
     }
+#endif
 }

@@ -78,6 +78,8 @@ class crawler_process
 
     std::queue<std::string>* fifo;
     netio* netio_obj;
+
+    size_t root_domain(std::string& url);
 };
 
 #endif

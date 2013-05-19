@@ -3,6 +3,7 @@
 #include <mutex>
 
 #include "cache.hpp"
+#include "database.hpp"
 #include "page_data.hpp"
 
 //Local defines
@@ -18,14 +19,16 @@
     #define dbg_1 0 && std::cout
 #endif
 
-cache::cache(netio* netio_object, database* database_object)
+cache::cache(database* database_object)
 {
-    n
+    database_obj = database_object;
 }
 
-cache::cache(void)
+cache::~cache(void)
 {
-
+    //delete cache items
+    for(cache_map_t::iterator it = priority_cache.begin(); it != priority_cache.end(); ++it)
+        delete it->second;
 }
 
 //non threading version. assumes locks have already been aquired.
@@ -34,9 +37,9 @@ void cache::cache_housekeeping(cache_task task, std::string& url, struct page_da
     switch(task) {
     case PRUNE_PCACHE:
         //remove from cache
-        if(page->rank < priority_ctl.delta) {
+        if(page->rank < priority_ctl.lowest_entry->rank) {
             priority_cache.erase(url);
-            --priority_cache_fill;
+            --priority_ctl.fill;
         }
         break;
     case EVAL_PCACHE:
@@ -44,7 +47,7 @@ void cache::cache_housekeeping(cache_task task, std::string& url, struct page_da
         break;
     case PRUNE_FCACHE:
         //tbd
-        dbg<<"PRUNE_FCACHE - frequent access caching not supported"<<std::end;
+        dbg<<"PRUNE_FCACHE - frequent access caching not supported"<<std::endl;
         break;
     default:
         std::cerr<<"cache::cache_housekeeping_nt given unknown task"<<std::endl;
@@ -53,7 +56,7 @@ void cache::cache_housekeeping(cache_task task, std::string& url, struct page_da
 
 struct page_data_s* cache::get_page(std::string& url)
 {
-    struct page_data_s* page_data;
+    struct page_data_s* page_data = nullptr;
 
     //both getting and putting pages in cache have to be atomic
     priority_ctl.rw_mutex.lock();
@@ -61,24 +64,24 @@ struct page_data_s* cache::get_page(std::string& url)
     //check priority cache first
     cache_map_t::iterator pri_node = priority_cache.find(url);
     if(pri_node != priority_cache.end()) {
-        page_data = &pri_node->second;
+        page_data = pri_node->second;
 
-        cache_housekeeping(PRUNE_PCACHE, url, page_data);
-
+        //we have a page, lock its in-use mutex
+        page_data->access_lock.lock();
     }
-    
+
+    //cache has to be unlocked before calls to the database to prevent slowdown
     priority_ctl.rw_mutex.unlock();
 
     //not in cache, try db
-    if(page_data == 0) {
+    if(page_data == nullptr) {
         page_data = database_obj->get_page(url); //has its own locking
 
-        if(page_data == 0) //allocate new page
-            page_data = new(page_data_s);
-    }
+        if(page_data == nullptr) //allocate new page. we should do this from a pool
+            page_data = new struct page_data_s;
 
-    //we have a page, lock its in-use mutex
-    page_data->access_lock.lock();
+        page_data->access_lock.lock();
+    }
 
     return page_data;
 }
@@ -91,10 +94,14 @@ void cache::put_page(std::string& url, struct page_data_s* page_data)
     priority_ctl.rw_mutex.lock();
     page_data->access_lock.unlock();
 
-    if(page_data->rank > priority_ctl.lowest_entry.rank) {
+    if(page_data->rank > priority_ctl.lowest_entry->rank) {
         if(priority_ctl.fill >= PC_UPPER_WATERMARK) {
             //will need to remove existing page
-            priority_cache.erase(priority_ctl.lowest_entry.url);
+            priority_cache.erase(priority_ctl.lowest_entry->url);
+            delete(&priority_ctl.lowest_entry);
+
+            //update cache_ctl
+            cache_housekeeping(PRUNE_PCACHE, url, page_data);
         }
 
         priority_cache.insert(page);

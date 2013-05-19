@@ -19,7 +19,7 @@ struct page_data_s {
     //for root pages only (top level domains)
     time_t last_visit;
     time_t crawl_delay;
-    robots_txt robots;
+    robots_txt* robots;
 
     //book keeping
     std::mutex access_lock; //only one thread may access at a time, managed by cache class

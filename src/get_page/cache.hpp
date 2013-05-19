@@ -22,7 +22,7 @@ class database;
  * part of the cache control mechanism
  */
 struct cache_control_s {
-    page_data_s& lowest_entry;  //lowest priority/least frequent
+    page_data_s* lowest_entry;  //lowest priority/least frequent
     std::mutex rw_mutex;
     unsigned int fill;          //#cache entries
 };
@@ -52,7 +52,7 @@ enum cache_task {
 class cache
 {
     public:
-    cache(netio* netio_object, database* database_object);
+    cache(database* database_object);
     ~cache(void);
 
     /**
@@ -64,17 +64,14 @@ class cache
     /**
      * page is potentially cached, depending on criteria and sent to the db
      */
-    void put_page(struct page_data_s* page, std::string& url);
+    void put_page(std::string& url, struct page_data_s* page_data);
 
     private:
     //tune in the future to specify minimum # of initial buckets
     cache_map_t priority_cache;
     struct cache_control_s priority_ctl;
 
-    cache_map_t frequent_cache;
-
-    //to pass to robots_txt classes.
-    netio* netio_obj;
+    //cache_map_t frequent_cache; //wip / to do
     database* database_obj;
 
     //non-threaded
