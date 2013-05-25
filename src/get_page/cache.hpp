@@ -34,9 +34,8 @@ typedef std::unordered_map<std::string, struct page_data_s*> cache_map_t;
  *  -- later to be threaded, this becomes part of internal ipc
  */
 enum cache_task {
-    PRUNE_PCACHE,
-    EVAL_PCACHE,
-    PRUNE_FCACHE
+    PCACHE_INS,
+    PCACHE_RM
 };
 
 

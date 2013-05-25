@@ -56,7 +56,7 @@ void robots_txt::refresh(netio& netio_obj)
     std::string temp_data;
     netio_obj.fetch(&temp_data, domain+"/robots.txt");
 #endif
-    
+
 
     parse(temp_data);
 }
@@ -67,7 +67,7 @@ bool robots_txt::exclude(std::string& path)
         return true;
 
     size_t pos = domain.length();
-        
+
     for(std::vector<std::string>::iterator it = disallow_list.begin(); it != disallow_list.end(); ++it) {
         if(path.compare(pos, it->size(), *it) == 0)
             return true;
@@ -286,6 +286,6 @@ bool robots_txt::sitemap(std::string& data)
         data = sitemap_url;
         return true;
     }
-    
+
     return false;
 }

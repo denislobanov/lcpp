@@ -5,3 +5,4 @@ test_netio
 test_parser
 test_crawler
 test_robots_txt
+test_cache
