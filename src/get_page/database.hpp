@@ -2,7 +2,18 @@
 #define DATABASE_H
 
 #include <iostream>
+#include <functional>
+
 #include "page_data.hpp"
+
+enum instruction {
+    RANK,
+    DESCRIPTION,
+    META,
+    LAST_VISIT,
+    CRAWL_DELAY,
+    NOT_INST
+};
 
 class database
 {
@@ -23,6 +34,11 @@ class database
 
     private:
     std::string db_path;
+    std::mutex file_io_lock;    //concurrent open to the same file
+
+    bool is_inst(std::string line, std::string inst);
+    instruction process_instruction(std::string line);
+    void store_keywords(struct page_data_s* page_data, std::string page_hash);
 };
 
 #endif

@@ -11,7 +11,7 @@
  * describes an entry to pass to caching/db mechanism
  */
 struct page_data_s {
-    std::string url;
+    std::string url;    //depricated
     unsigned int rank;
     std::vector<std::string> meta;  //keywords associated with page
     std::string description;        //short blob about page
