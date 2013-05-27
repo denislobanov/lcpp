@@ -36,28 +36,7 @@ inline bool database::is_inst(std::string line, std::string inst)
     return line.compare(0, inst.length(), inst) == 0 ? true : false;
 }
 
-instruction database::process_instruction(std::string line)
-{
-    if(is_inst(line, "rank"))
-        return RANK;
-
-    else if(is_inst(line, "description"))
-        return DESCRIPTION;
-
-    else if(is_inst(line, "meta"))
-        return META;
-
-    else if(is_inst(line, "last_visit"))
-        return LAST_VISIT;
-
-    else if(is_inst(line, "crawl_delay"))
-        return CRAWL_DELAY;
-
-    else
-        return NOT_INST;
-}
-
-struct page_data_s* database::get_page(std::string& url)
+void database::get_page_data(struct page_data_s* page_data, std::string& url)
 {
     std::hash<std::string> url_hash;
     std::stringstream ss;
@@ -67,62 +46,56 @@ struct page_data_s* database::get_page(std::string& url)
     ss<<url_hash(url);
     filename = ss.str();
 
+    dbg<<"filename: "<<filename<<std::endl;
+
     //perform lookup
     file_io_lock.lock();
-    std::ifstream file_stream(db_path+"page_data"+filename);
+    std::ifstream file_stream(db_path+"/page_data/"+filename);
     file_io_lock.unlock();
 
-    struct page_data_s* page_data = new struct page_data_s;
     if(file_stream) {
+        dbg<<"stream valid"<<std::endl;
         std::string line;
         while(file_stream.good()) {
+            //first line of record is the page rank
+            getline(file_stream, line);
+            ss.str(line);
+            ss >> page_data->rank;
+            dbg<<"rank line: "<<line<<std::endl;
+
+            //blank line seperates field data
             getline(file_stream, line);
 
-            switch(process_instruction(line)) {
-            case RANK:
+            getline(file_stream, line);     //first line of description
+            while(!line.empty()) {          //rest of description
+                page_data->description += line + "\n";
                 getline(file_stream, line);
+            }
 
-                ss.str(line);
-                ss >> page_data->rank;
-                break;
+            //blank line
+            getline(file_stream, line);
+            
+            getline(file_stream, line);
+            ss.str(line);
+            ss >> page_data->last_visit;
 
-            case DESCRIPTION:
-                while(line != "\n") {
-                    getline(file_stream, line);
-                    page_data->description = line;
-                }
-                break;
-
-            case META:
-                while(line != "\n") {
-                    getline(file_stream, line);
-                    page_data->meta.push_back(line);
-                }
-                break;
-
-            case LAST_VISIT:
+            //field seperator
+            getline(file_stream, line);
+            
+            getline(file_stream, line);
+            ss.str(line);
+            ss >> page_data->crawl_delay;
+            
+            //meta data
+            getline(file_stream, line);
+            while(!line.empty()) {
                 getline(file_stream, line);
-
-                ss.str(line);
-                ss >> page_data->last_visit;
-                break;
-
-            case CRAWL_DELAY:
-                getline(file_stream, line);
-
-                ss.str(line);
-                ss >> page_data->crawl_delay;
-                break;
-
-            default:
-                //do nothing.
-                break;
+                page_data->meta.push_back(line);
             }
         }
     }
 
     file_stream.close();
-    return page_data;
 }
 
 void database::store_keywords(struct page_data_s* page_data, std::string page_hash)
@@ -168,7 +141,7 @@ void database::store_keywords(struct page_data_s* page_data, std::string page_ha
     }
 }
 
-void database::put_page(std::string& url, struct page_data_s* page_data)
+void database::put_page_data(struct page_data_s* page_data, std::string& url)
 {
     std::hash<std::string> url_hash;
     std::stringstream ss;
@@ -188,21 +161,25 @@ void database::put_page(std::string& url, struct page_data_s* page_data)
 
     //appending data is the responsibility of the crawler proccess
     if(file_data) {
-        file_data<<"rank\n";
+        //rank
         file_data<<page_data->rank<<std::endl;
+        file_data<<std::endl;   //each filed is seperated by a new line
 
-        file_data<<"\nmeta\n";
+        //description
+        file_data<<page_data->description<<std::endl;
+        file_data<<std::endl;
+
+        //last visit
+        file_data<<page_data->last_visit<<std::endl;
+        file_data<<std::endl;
+
+        //crawl delay
+        file_data<<page_data->crawl_delay<<std::endl;
+        file_data<<std::endl;
+
+        //meta - this avoid searching meta_data dir
         for(auto& it: page_data->meta)
             file_data<<it<<std::endl;
-
-        file_data<<"\ndescription\n";
-        file_data<<page_data->description<<std::endl;
-
-        file_data<<"\nlast_visit\n";
-        file_data<<page_data->last_visit<<std::endl;
-
-        file_data<<"\ncrawl_delay\n";
-        file_data<<page_data->crawl_delay<<std::endl;
     }
 
     file_data.close();

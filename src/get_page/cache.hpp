@@ -51,27 +51,25 @@ enum cache_task {
 class cache
 {
     public:
-    cache(database* database_object);
+    cache(void);
     ~cache(void);
 
     /**
      * url is hashed and a page_data_s retrieved.
-     * if no page_data_s is present, a new one is allocated.
+     * returns true if a page was found in cache
      */
-    struct page_data_s* get_page(std::string& url);
+    bool get_page_data(struct page_data_s** page_data, std::string& url);
 
     /**
      * page is potentially cached, depending on criteria and sent to the db
+     * returns true if a page makes it to cache
      */
-    void put_page(std::string& url, struct page_data_s* page_data);
+    bool put_page_data(struct page_data_s* page_data, std::string& url);
 
     private:
     //tune in the future to specify minimum # of initial buckets
     cache_map_t priority_cache;
     struct cache_control_s priority_ctl;
-
-    //cache_map_t frequent_cache; //wip / to do
-    database* database_obj;
 
     //non-threaded
     void cache_housekeeping(cache_task task, std::string& url, struct page_data_s* page);

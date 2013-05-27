@@ -6,8 +6,6 @@
 #include "database.hpp"
 #include "page_data.hpp"
 
-#define DEBUG 1
-
 //Local defines
 #if defined(DEBUG)
     #define dbg std::cout<<__FILE__<<"("<<__LINE__<<"): "
@@ -21,18 +19,15 @@
     #define dbg_1 0 && std::cout
 #endif
 
-cache::cache(database* database_object)
+cache::cache(void)
 {
-    database_obj = database_object;
     priority_ctl.lowest_entry = nullptr;
     priority_ctl.fill = 0;
 }
 
 cache::~cache(void)
 {
-    //delete cache items
-    for(cache_map_t::iterator it = priority_cache.begin(); it != priority_cache.end(); ++it)
-        delete it->second;
+    //nop
 }
 
 //non threading version. assumes locks have already been aquired.
@@ -84,50 +79,39 @@ void cache::cache_housekeeping(cache_task task, std::string& url, struct page_da
     }
 }
 
-struct page_data_s* cache::get_page(std::string& url)
+bool cache::get_page_data(struct page_data_s** page_data, std::string& url)
 {
-    struct page_data_s* page_data = nullptr;
+    bool page_in_cache = false;
 
     //both getting and putting pages in cache have to be atomic
     priority_ctl.rw_mutex.lock();
 
     cache_map_t::iterator pri_node = priority_cache.find(url);
     if(pri_node != priority_cache.end()) {
-        page_data = pri_node->second;
+        *page_data = pri_node->second;
 
-        //we have a page, lock its in-use mutex
-        page_data->access_lock.lock();
-        dbg<<"got page"<<std::endl;
+        //lock page access before returning page
+        //to make sure that multiple access to a cache pages does not occure
+        (*page_data)->access_lock.lock();
+
+        dbg<<"got page, desc: "<<(*page_data)->description<<std::endl;
+        page_in_cache = true;
     }
 
-    //cache has to be unlocked before calls to the database to prevent slowdown
     priority_ctl.rw_mutex.unlock();
-
-    //not in cache, try db then allocate
-    if(page_data == nullptr) {
-        dbg<<"page_data == nullptr"<<std::endl;
-        page_data = database_obj->get_page(url); //has its own locking
-
-        if(page_data == nullptr)
-        {
-            dbg<<"creating new page"<<std::endl;
-            page_data = new struct page_data_s;
-        }
-
-        page_data->access_lock.lock();
-    }
-
-    return page_data;
+    return page_in_cache;
 }
 
-//page access lock assumed
-void cache::put_page(std::string& url, struct page_data_s* page_data)
+bool cache::put_page_data(struct page_data_s* page_data, std::string& url)
 {
     std::pair<std::string, struct page_data_s*> page (url, page_data);
+    bool page_in_cache = true;
 
     priority_ctl.rw_mutex.lock();
-    page_data->access_lock.unlock();
 
+    dbg<<"desc"<<page_data->description<<std::endl;
+
+    
     if(priority_ctl.fill < PC_UPPER_WATERMARK) { //fill cache
         priority_cache.insert(page);
         cache_housekeeping(PCACHE_INS, url, page_data);
@@ -135,13 +119,13 @@ void cache::put_page(std::string& url, struct page_data_s* page_data)
     } else if(page_data->rank > priority_ctl.lowest_entry->rank) {
         cache_housekeeping(PCACHE_RM, url, page_data);
         priority_cache.insert(page);
+
     } else {
         dbg<<"not inserting page"<<std::endl;
+        page_in_cache = false;
     }
-
     priority_ctl.rw_mutex.unlock();
 
-    //send to db
-    database_obj->put_page(url, page_data);
+    return page_in_cache;
 }
 

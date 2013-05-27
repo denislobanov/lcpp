@@ -84,10 +84,12 @@ size_t robots_txt::line_is_comment(std::string& data)
 
     if(eol > 0) {
         do {
-            if(data.compare(pos, 1, "#") == 0)
+            if(data.empty())
                 return true;
-            else if(data.compare(pos, 1, "\n") == 0)
+            else if(data.compare(pos, 1, "#") == 0)
                 return true;
+
+            //should this be removed?
             else if(data.compare(pos, 1, " ") == 0)
                 return false;
         } while((data.compare(++pos, 1, " ") == 0)&&(pos < eol));
