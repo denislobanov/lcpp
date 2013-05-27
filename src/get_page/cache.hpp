@@ -10,7 +10,7 @@
 class database;
 
 //point at which items will need to be removed
-#define PC_UPPER_WATERMARK  20
+#define PC_UPPER_WATERMARK  10
 //for delayed freeing (housekeeping /thread/ implementation)
 #define PC_MAX_FILL         0//unused!
 

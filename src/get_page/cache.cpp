@@ -6,6 +6,8 @@
 #include "database.hpp"
 #include "page_data.hpp"
 
+#define DEBUG 1
+
 //Local defines
 #if defined(DEBUG)
     #define dbg std::cout<<__FILE__<<"("<<__LINE__<<"): "
@@ -38,6 +40,7 @@ void cache::cache_housekeeping(cache_task task, std::string& url, struct page_da
         if(priority_ctl.lowest_entry == nullptr) {
             priority_ctl.lowest_entry = page;
             dbg<<"first lowest entry since time"<<std::endl;
+            
         } else {
             if (page->rank < priority_ctl.lowest_entry->rank) {
                 dbg<<"page rank "<<page->rank<<" is the new lowest entry"<<std::endl;
@@ -46,33 +49,33 @@ void cache::cache_housekeeping(cache_task task, std::string& url, struct page_da
         }
 
         ++priority_ctl.fill;
+        page->url = url;    //we rely on this, so to make sure its right..
         dbg<<"priority_ctl.fill "<<priority_ctl.fill<<std::endl;
         break;
 
     case PCACHE_RM:
+    {
         //remove existing lowest entry from cache
-        priority_cache.erase(priority_ctl.lowest_entry->url);
+        if(!priority_cache.erase(priority_ctl.lowest_entry->url)) {
+            std::cerr<<"failed to delete item at key["<<priority_ctl.lowest_entry->url<<"]"<<std::endl;
+            exit(-1);
+        }
         delete priority_ctl.lowest_entry;
 
+        //quicksort
+        priority_ctl.lowest_entry = page;
+        priority_ctl.lowest_entry->url = url;    //in case it wasnt set
+
         //find new lowest entry
-        for(unsigned int i=0; i<priority_cache.bucket_count(); ++i) {
-            dbg<<"bucket "<<i<<" ";
-
-            for(auto le_it = priority_cache.begin(i); le_it != priority_cache.end(i); ++le_it) {
-                std::cout<<"rank "<<le_it->second->rank<<" ";
-
-                if(priority_ctl.lowest_entry == nullptr) {
-                    std::cout<<"first lowest entry";
-                    priority_ctl.lowest_entry = le_it->second;
-                }else if(le_it->second->rank < priority_ctl.lowest_entry->rank) {
-                    std::cout<<"replaced lowest entry";
-                    priority_ctl.lowest_entry = le_it->second;
-                }
+        for(auto& node: priority_cache) {
+            if(node.second->rank < priority_ctl.lowest_entry->rank) {
+                dbg<<"rank "<<node.second->rank<<" lowest entry, was "<<priority_ctl.lowest_entry->rank<<std::endl;
+                priority_ctl.lowest_entry = node.second;
             }
-            dbg<<std::endl;
         }
         break;
-
+    }
+    
     default:
         std::cerr<<"cache::cache_housekeeping_nt given unknown task"<<std::endl;
         break;
@@ -108,20 +111,19 @@ bool cache::put_page_data(struct page_data_s* page_data, std::string& url)
     bool page_in_cache = true;
 
     priority_ctl.rw_mutex.lock();
-
-    dbg<<"desc"<<page_data->description<<std::endl;
-
     
     if(priority_ctl.fill < PC_UPPER_WATERMARK) { //fill cache
+        dbg<<"priority_ctl.fill < PC_UPPER_WATERMARK\n";
         priority_cache.insert(page);
         cache_housekeeping(PCACHE_INS, url, page_data);
 
     } else if(page_data->rank > priority_ctl.lowest_entry->rank) {
-        cache_housekeeping(PCACHE_RM, url, page_data);
+        dbg<<"page_data->rank > priority_ctl.lowest_entry->rank\n";
         priority_cache.insert(page);
+        cache_housekeeping(PCACHE_RM, url, page_data);
 
     } else {
-        dbg<<"not inserting page"<<std::endl;
+        dbg<<"not inserting page: rank "<<page_data->rank<<" < "<<priority_ctl.lowest_entry->rank<<std::endl;
         page_in_cache = false;
     }
     priority_ctl.rw_mutex.unlock();
