@@ -6,8 +6,6 @@
 #include "database.hpp"
 #include "page_data.hpp"
 
-#define DEBUG 1
-
 //Local defines
 #if defined(DEBUG)
     #define dbg std::cout<<__FILE__<<"("<<__LINE__<<"): "
@@ -130,7 +128,7 @@ void database::store_keywords(struct page_data_s* page_data, std::string page_ha
         if(!meta_present) {
             //open for writing
             file_io_lock.lock();
-            meta_file.open(db_path+"/meta_data/"+keyword, std::fstream::out);
+            meta_file.open(db_path+"/meta_data/"+keyword, std::fstream::out|std::fstream::app);
             file_io_lock.unlock();
             
             meta_file<<page_hash<<std::endl;
@@ -177,7 +175,7 @@ void database::put_page_data(struct page_data_s* page_data, std::string& url)
         file_data<<page_data->crawl_delay<<std::endl;
         file_data<<std::endl;
 
-        //meta - this avoid searching meta_data dir
+        //meta - this avoid searching meta_data dir on get_page_data
         for(auto& it: page_data->meta)
             file_data<<it<<std::endl;
     }

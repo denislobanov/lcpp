@@ -13,6 +13,21 @@
 //should not be needed with new database class?
 #include "page_data.hpp"
 
+//Local defines
+#define DEBUG 1
+
+#if defined(DEBUG)
+    #define dbg std::cout<<__FILE__<<"("<<__LINE__<<"): "
+    #if DEBUG > 1
+        #define dbg_1 std::cout<<__FILE__<<"("<<__LINE__<<"): "
+    #else
+        #define dbg_1 0 && std::cout
+    #endif
+#else
+    #define dbg 0 && std::cout
+    #define dbg_1 0 && std::cout
+#endif
+
 crawler_process::crawler_process(netio* netio_object, std::queue<std::string>* url_fifo, search_grid meta_grid, search_grid url_grid)
 {
     netio_obj = netio_object;

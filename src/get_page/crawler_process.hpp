@@ -39,7 +39,7 @@ struct search_grid_node_s {
 };
 
 /**
- * a search grid is a vectore of one or more nodes
+ * a search grid is a vector of one or more search_grid_node_s nodes
  */
 typedef std::vector<search_grid_node_s> search_grid;
 

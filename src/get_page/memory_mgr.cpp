@@ -1,12 +1,14 @@
 #include <iostream>
 
 #include "memory_mgr.hpp"
-#include "page_data_s.hpp"
+#include "cache.hpp"
+#include "database.hpp"
+#include "page_data.hpp"
 
 memory_mgr::memory_mgr(std::string database_path)
 {
-    mem_cache = new cache();
-    mem_db = new database(path);
+    mem_cache = new cache;
+    mem_db = new database(database_path);
 }
 
 memory_mgr::~memory_mgr(void)
@@ -15,7 +17,7 @@ memory_mgr::~memory_mgr(void)
     delete mem_db;
 }
 
-struct memory_mgr::page_data_s* get_page(std::string& url)
+struct page_data_s* memory_mgr::get_page(std::string& url)
 {
     struct page_data_s* page = new struct page_data_s;
 

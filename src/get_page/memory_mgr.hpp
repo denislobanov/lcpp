@@ -20,7 +20,7 @@ class memory_mgr
     memory_mgr(std::string database_path);
     ~memory_mgr(void);
 
-    struct page_data_s* get_page(void);
+    struct page_data_s* get_page(std::string& url);
     void put_page(std::string& url, struct page_data_s* page);
 
     private:

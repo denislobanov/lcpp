@@ -6,8 +6,6 @@
 #include "database.hpp"
 #include "page_data.hpp"
 
-#define DEBUG 1
-
 //Local defines
 #if defined(DEBUG)
     #define dbg std::cout<<__FILE__<<"("<<__LINE__<<"): "
