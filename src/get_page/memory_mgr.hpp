@@ -17,7 +17,7 @@ class database;
 class memory_mgr
 {
     public:
-    memory_mgr(std::string database_path);
+    memory_mgr(std::string database_path, std::string user_agent);
     ~memory_mgr(void);
 
     struct page_data_s* get_page(std::string& url);
@@ -25,5 +25,6 @@ class memory_mgr
 
     private:
     cache* mem_cache;
-    database* mem_db; 
+    database* mem_db;
+    std::string agent_name;
 };

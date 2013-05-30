@@ -8,8 +8,9 @@
 int main(void)
 {
     netio my_netio("lcpp robots_txt unit test");
-    robots_txt my_robots_txt(my_netio, "sdfsdfsdf", "www.geeksaresexy.net");
+    robots_txt my_robots_txt("sdfsdfsdf", "www.geeksaresexy.net");
     //~ robots_txt my_robots_txt(my_netio, "lcpp robots_txt unit test", "http://en.wikipedia.org");
+    my_robots_txt.fetch(my_netio);
 
     //test crawl-delay
     unsigned int i = (unsigned int)my_robots_txt.crawl_delay();

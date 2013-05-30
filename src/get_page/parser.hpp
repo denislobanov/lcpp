@@ -4,16 +4,30 @@
 #include <iostream>
 #include <vector>
 
+//best explained in the example of an extracted link:
+//  content:    page url
+//  meta:       keywords from linking site
+struct data_node_s {
+    std::string content;
+    std::vector<std::string> meta;
+};
+
+//best explained in the example of searching for a
+struct search_node_s {
+    std::string name;
+    //wip
+};
+
+struct search_param_s {
+    std::string parent_tag;         //consider tags from one parent only
+    std::vector<std::string> attr;  //match tags with certain attributes only
+    std::string tag_name;
+};
+
 class parser
 {
     public:
-    /**
-     *  initialises a keyword specific parser.
-     *
-     * start_type and end_type create a 'grid' limiting search/extraction
-     * to specific areas of data
-     */
-    parser(std::string start_type, std::string end_type);
+    parser(struct search_param_s& search_param);
     ~parser(void);
 
     /**
@@ -33,16 +47,7 @@ class parser
     void prepair(std::string& data);
 
     private:
-    struct data_grid_s {
-        size_t start, end;
-    };
-
-    std::string tag_open;
-    std::string tag_close;
-    size_t tag_open_offset;
-    std::vector<struct data_grid_s> data_grid;  //exlude data outside of grid
-
-    void print_debug(std::string message);
+    struct search_param_s param;
 };
 
 #endif

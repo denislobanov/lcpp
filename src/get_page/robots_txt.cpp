@@ -24,13 +24,11 @@
     #define dbg_1 0 && std::cout
 #endif
 
-robots_txt::robots_txt(netio& netio_obj, std::string user_agent, std::string root_domain)
+robots_txt::robots_txt(std::string user_agent, std::string root_domain)
 {
     agent_name = user_agent;
     domain = root_domain;
     process_param = false;  //set to true on matching user-agent by process instruction
-
-    refresh(netio_obj);
 }
 
 robots_txt::~robots_txt(void)
@@ -38,7 +36,7 @@ robots_txt::~robots_txt(void)
     //?
 }
 
-void robots_txt::refresh(netio& netio_obj)
+void robots_txt::fetch(netio& netio_obj)
 {
     //(re)set defaults
     disallow_list.clear();
@@ -277,9 +275,23 @@ void robots_txt::import_exclusions(std::vector<std::string>& data)
     disallow_list = data;
 }
 
-void robots_txt::export_exclusions(std::vector<std::string>& data)
+bool robots_txt::export_exclusions(std::vector<std::string>& data)
 {
     data = disallow_list;
+
+    return disallow_list.size() > 0;
+}
+
+void robots_txt::import_exclusions(std::vector<std::string>& data)
+{
+    allow_list = data;
+}
+
+void robots_txt::export_exclusions(std::vector<std::string>& data)
+{
+    data = allow_list;
+
+    return allow_list.size() > 0;
 }
 
 bool robots_txt::sitemap(std::string& data)

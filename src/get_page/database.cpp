@@ -61,34 +61,60 @@ void database::get_page_data(struct page_data_s* page_data, std::string& url)
             ss >> page_data->rank;
             dbg<<"rank line: "<<line<<std::endl;
 
-            //blank line seperates field data
+            //last_visit
+            getline(file_stream, line); //blank line seperates field data
             getline(file_stream, line);
+            ss.str(line);
+            ss >> page_data->last_visit;
 
+            //crawl_delay
+            getline(file_stream, line);
+            getline(file_stream, line);
+            ss.str(line);
+            ss >> page_data->crawl_delay;
+
+            //page title
+            getline(file_stream, line);
+            getline(file_stream, line);
+            page_data->title += line;
+
+            //description
+            getline(file_stream, line);     //blank line seperates field data
             getline(file_stream, line);     //first line of description
             while(!line.empty()) {          //rest of description
                 page_data->description += line + "\n";
                 getline(file_stream, line);
             }
 
-            //blank line
-            getline(file_stream, line);
-            
-            getline(file_stream, line);
-            ss.str(line);
-            ss >> page_data->last_visit;
-
-            //field seperator
-            getline(file_stream, line);
-            
-            getline(file_stream, line);
-            ss.str(line);
-            ss >> page_data->crawl_delay;
-            
             //meta data
             getline(file_stream, line);
             while(!line.empty()) {
-                getline(file_stream, line);
                 page_data->meta.push_back(line);
+                getline(file_stream, line);
+            }
+
+            //robots txt exclusion list
+            getline(file_stream, line);
+            if(!line.empty()) {
+                std::vector<std::string> exclusions;
+
+                while(!line.empty()) {
+                    exclusions.push_back(line);
+                    getline(file_stream, line);
+                }
+                page_data->robots->import_exclusions(exclusions);
+            }
+
+            //robots txt inclusion list
+            getline(file_stream, line);
+            if(!line.empty()) {
+                std::vector<std::string> inclusions;
+
+                while(!line.empty()) {
+                    inclusions.push_back(line);
+                    getline(file_stream, line);
+                }
+                page_data->robots->import_inclusions(exclusions);
             }
         }
     }
@@ -100,7 +126,7 @@ void database::store_keywords(struct page_data_s* page_data, std::string page_ha
 {
     for(auto& keyword: page_data->meta) {
         dbg<<"keyword: "<<keyword<<std::endl;
-        
+
         //each keyword has its own "meta" file, which contains hashes of matching pages
         file_io_lock.lock();
         //first we read to see if keyword is already associated with page
@@ -109,7 +135,7 @@ void database::store_keywords(struct page_data_s* page_data, std::string page_ha
 
         //check if page-keyword association already exists.
         bool meta_present = false;
-        
+
         if(meta_file) {
             while(meta_file.good()) {
                 std::string line;
@@ -123,14 +149,14 @@ void database::store_keywords(struct page_data_s* page_data, std::string page_ha
             }
         }
         meta_file.close();
-        
+
         //new keyword and/or file
         if(!meta_present) {
             //open for writing
             file_io_lock.lock();
             meta_file.open(db_path+"/meta_data/"+keyword, std::fstream::out|std::fstream::app);
             file_io_lock.unlock();
-            
+
             meta_file<<page_hash<<std::endl;
 
             meta_file.flush();
@@ -144,6 +170,9 @@ void database::put_page_data(struct page_data_s* page_data, std::string& url)
     std::hash<std::string> url_hash;
     std::stringstream ss;
     std::string filename;
+
+    std::vector<std::string> exclusions;
+    std::vector<std::string> inclusions;
 
     //create filename
     ss<<url_hash(url);
@@ -163,10 +192,6 @@ void database::put_page_data(struct page_data_s* page_data, std::string& url)
         file_data<<page_data->rank<<std::endl;
         file_data<<std::endl;   //each filed is seperated by a new line
 
-        //description
-        file_data<<page_data->description<<std::endl;
-        file_data<<std::endl;
-
         //last visit
         file_data<<page_data->last_visit<<std::endl;
         file_data<<std::endl;
@@ -174,10 +199,34 @@ void database::put_page_data(struct page_data_s* page_data, std::string& url)
         //crawl delay
         file_data<<page_data->crawl_delay<<std::endl;
         file_data<<std::endl;
+        
+        //title
+        file_data<<page_data->title<<std::endl;
+        file_data<<std::endl;
+
+        //description
+        file_data<<page_data->description<<std::endl;
+        file_data<<std::endl;
 
         //meta - this avoid searching meta_data dir on get_page_data
         for(auto& it: page_data->meta)
             file_data<<it<<std::endl;
+
+        //if there is any data from robots_txt class to export..
+        if(page_data->robots->export_exclusions(exclusions)) {
+            //write seperator
+            file_data<<std::endl;
+            
+            for(auto& ex_line : exclusions)
+                file_data<<ex_line<<std::endl;
+        }
+
+        //both inclusions and exclusions vectors are independantly optional
+        if(page_data->robots->export_inclusions(inclusions)) {
+            file_data<<std::endl;
+            for(auto& inc_line: inclusions)
+                file_data<<inc_line<<std::endl;
+        }
     }
 
     file_data.close();

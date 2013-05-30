@@ -5,10 +5,11 @@
 #include "database.hpp"
 #include "page_data.hpp"
 
-memory_mgr::memory_mgr(std::string database_path)
+memory_mgr::memory_mgr(std::string database_path, std::string user_agent)
 {
     mem_cache = new cache;
     mem_db = new database(database_path);
+    agent_name = user_agent;
 }
 
 memory_mgr::~memory_mgr(void)
@@ -20,6 +21,7 @@ memory_mgr::~memory_mgr(void)
 struct page_data_s* memory_mgr::get_page(std::string& url)
 {
     struct page_data_s* page = new struct page_data_s;
+    page->robots_txt = new robots_txt(agent_name, url);
 
     //see if page exists in cache
     //cache will autimatically lock the page access mutex,
@@ -48,6 +50,8 @@ void memory_mgr::put_page(std::string& url, struct page_data_s* page)
     page->access_lock.unlock();
 
     //pages that dont make it into the cache get deleted
-    if(!ret)
+    if(!ret) {
+        delete page->robots;
         delete page;
+    }
 }

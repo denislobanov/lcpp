@@ -30,13 +30,13 @@ class robots_txt
      * crawler_name is needed to check "User-agent:" field of robots.txt
      * root_domain will have robots.txt appended automatically
      */
-    robots_txt(netio& netio_obj, std::string user_agent, std::string root_domain);
+    robots_txt(std::string user_agent, std::string root_domain);
     ~robots_txt(void);
 
     /**
      * optional call to refresh current robots.txt profile
      */
-    void refresh(netio& netio_obj);
+    void fetch(netio& netio_obj);
 
     /**
      * checks if path (usually url) is within the exclusion list
@@ -50,16 +50,23 @@ class robots_txt
     time_t crawl_delay(void);
 
     /**
-     * to avoid thrashing netio for robots.txt (cache_time < robots.txt expire time)
-     * performs a copy operation
-     */
-    void import_exclusions(std::vector<std::string>& data);
-    void export_exclusions(std::vector<std::string>& data);
-
-    /**
      * returns true if sitemap present, data set to sitemap url
      */
     bool sitemap(std::string& data);
+    
+    /**
+     * avoid excessive calls to get robots_txt on site previously visited but not cache
+     * returns true if copy occured
+     *      data should be ignored otherwise
+     */
+    bool export_exclusions(std::vector<std::string>& data);
+    bool export_inclusions(std::vector<std::string>& data);
+    
+    /**
+     * counterpart to above
+     */
+    void import_exclusions(std::vector<std::string>& data);
+    void import_inclusions(std::vector<std::string>& data);
 
     private:
     bool can_crawl; //if crawler's completely banned or a whitelist policy is used

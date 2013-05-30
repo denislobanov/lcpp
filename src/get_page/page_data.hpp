@@ -13,8 +13,9 @@
 struct page_data_s {
     std::string url;                //used by cache for housekeeping.
     unsigned int rank;
-    std::vector<std::string> meta;  //keywords associated with page
+    std::string title;              //page title
     std::string description;        //short blob about page
+    std::vector<std::string> meta;  //keywords associated with page
 
     //for root pages only (top level domains)
     time_t last_visit;
