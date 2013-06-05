@@ -114,7 +114,7 @@ void database::get_page_data(struct page_data_s* page_data, std::string& url)
                     inclusions.push_back(line);
                     getline(file_stream, line);
                 }
-                page_data->robots->import_inclusions(exclusions);
+                page_data->robots->import_inclusions(inclusions);
             }
         }
     }

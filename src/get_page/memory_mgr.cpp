@@ -21,7 +21,7 @@ memory_mgr::~memory_mgr(void)
 struct page_data_s* memory_mgr::get_page(std::string& url)
 {
     struct page_data_s* page = new struct page_data_s;
-    page->robots_txt = new robots_txt(agent_name, url);
+    page->robots = new robots_txt(agent_name, url);
 
     //see if page exists in cache
     //cache will autimatically lock the page access mutex,

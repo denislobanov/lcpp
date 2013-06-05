@@ -3,51 +3,50 @@
 
 #include <iostream>
 #include <vector>
+#include <glibmm/ustring.h> //UTF-8 string
 
-//best explained in the example of an extracted link:
-//  content:    page url
-//  meta:       keywords from linking site
+class netio;
+
+//data returned from crawl
 struct data_node_s {
-    std::string content;
-    std::vector<std::string> meta;
+    std::string tag_name;                   //tag name crawled
+    Glib::ustring tag_data;                 //data contained within tag
+    std::vector<Glib::ustring> attr_data;   //value of each tag attribute
 };
 
-//best explained in the example of searching for a
-struct search_node_s {
-    std::string name;
-    //wip
+//control parsing behaviour
+struct parse_param_s {
+    std::string tag;                    //tag to match
+    std::vector<std::string> attr;      //match tags with certain attributes only
 };
 
-struct search_param_s {
-    std::string parent_tag;         //consider tags from one parent only
-    std::vector<std::string> attr;  //match tags with certain attributes only
-    std::string tag_name;
-};
-
-class parser
+class parser: public xmlpp::SaxParser
 {
     public:
-    parser(struct search_param_s& search_param);
+    parser(netio* netio_object, std::vector<struct parse_param_s>& parse_param);
     ~parser(void);
 
-    /**
-     * extracts keywords from within parse data grid
-     */
-    unsigned int extract(std::string& data, std::vector<std::string>& token_set);
-    unsigned int extract_separated(std::string& data, std::vector<std::string>& token_set, std::string deliminator, bool strip_empty);
-    /**
-     * search for keywords within data grid
-     */
-    unsigned int search(std::string& data, std::string keyword);
-    /**
-     * create data grid. this is not done by the constructor as parsers should
-     * be reused
-     */
-    void parse(std::string& data);
-    void prepair(std::string& data);
+    //reconfigure parser
+    void configure(std::vector<struct parse_param_s>& parse_param);
+    
+    //walks the document tree, parsing based on configuration
+    void parse(std::string url, std::vector<struct data_node_s>& parse_data);
 
+    protected:  //libxml++ SAX parsing overrides
+    virtual void on_start_document();
+    virtual void on_end_document();
+    virtual void on_start_element(const Glib::ustring& name, const AttributeList& properties);
+    virtual void on_end_element(const Glib::ustring& name);
+    virtual void on_characters(const Glib::ustring& characters);
+    virtual void on_comment(const Glib::ustring& text);
+    virtual void on_warning(const Glib::ustring& text);
+    virtual void on_error(const Glib::ustring& text);
+    virtual void on_fatal_error(const Glib::ustring& text);
+  
     private:
-    struct search_param_s param;
+    std::vector<struct parse_param_s> param;
+    std::vector<struct data_node_s> data;
+    netio* netio_obj;
 };
 
 #endif

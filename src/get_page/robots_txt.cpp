@@ -282,12 +282,12 @@ bool robots_txt::export_exclusions(std::vector<std::string>& data)
     return disallow_list.size() > 0;
 }
 
-void robots_txt::import_exclusions(std::vector<std::string>& data)
+void robots_txt::import_inclusions(std::vector<std::string>& data)
 {
     allow_list = data;
 }
 
-void robots_txt::export_exclusions(std::vector<std::string>& data)
+bool robots_txt::export_inclusions(std::vector<std::string>& data)
 {
     data = allow_list;
 

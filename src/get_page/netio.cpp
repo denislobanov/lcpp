@@ -52,7 +52,7 @@ std::string netio::last_error(void)
     return error_buffer;
 }
 
-//internal callback method wrappers (libCURL expects a C function)
+//internal callback method wrapper (libCURL expects a C function)
 static size_t store_data_callback(char *ptr, size_t size, size_t nmemb, void *userp)
 {
     if(userp)

@@ -35,7 +35,7 @@ test_memory_mgr: $(COMMON_OBJECTS) test_memory_mgr.o
 
 %.o : %.cpp
 ifeq ($(CC),clang++)
-	$(CC) $(CPPFLAGS) -c $<
+	$(CC) $(CPPFLAGS) $(pkg-config --cflags glibmm-2.4)-c $<
 else
 #	check if we need the $(INCLUDES) here
 	$(CC) $(CPPFLAGS) $(INCLUDES) -c $<
