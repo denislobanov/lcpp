@@ -3,50 +3,56 @@
 
 #include <iostream>
 #include <vector>
-#include <glibmm/ustring.h> //UTF-8 string
-
-class netio;
+#include <rapidxml.hpp>
+//this will be implemented when basic parsing works
+//~ #include <glibmm/ustring.h> //UTF-8 string
 
 //data returned from crawl
 struct data_node_s {
-    std::string tag_name;                   //tag name crawled
-    Glib::ustring tag_data;                 //data contained within tag
-    std::vector<Glib::ustring> attr_data;   //value of each tag attribute
+    std::string tag_name;                 //tag name crawled
+    std::string tag_data;                 //data contained within tag
+    std::string attr_data;   //value of each tag attribute
 };
 
 //control parsing behaviour
-struct parse_param_s {
-    std::string tag;                    //tag to match
-    std::vector<std::string> attr;      //match tags with certain attributes only
+enum parent_tag_e {
+    HTML_HEAD,
+    HTML_BODY
 };
 
-class parser: public xmlpp::SaxParser
+struct parse_param_s {
+    parent_tag_e parent_tag;
+    std::string tag;                    //tag to match
+    std::string attr;                   //match tags with a certain attribute only
+};
+
+typedef rapidxml::xml_node<> html_node;
+
+class parser
 {
     public:
-    parser(netio* netio_object, std::vector<struct parse_param_s>& parse_param);
+    parser(std::vector<struct parse_param_s>& parse_param);
     ~parser(void);
 
     //reconfigure parser
     void configure(std::vector<struct parse_param_s>& parse_param);
     
     //walks the document tree, parsing based on configuration
-    void parse(std::string url, std::vector<struct data_node_s>& parse_data);
+    void parse(std::string data);
 
-    protected:  //libxml++ SAX parsing overrides
-    virtual void on_start_document();
-    virtual void on_end_document();
-    virtual void on_start_element(const Glib::ustring& name, const AttributeList& properties);
-    virtual void on_end_element(const Glib::ustring& name);
-    virtual void on_characters(const Glib::ustring& characters);
-    virtual void on_comment(const Glib::ustring& text);
-    virtual void on_warning(const Glib::ustring& text);
-    virtual void on_error(const Glib::ustring& text);
-    virtual void on_fatal_error(const Glib::ustring& text);
+    //copies internal data to user referenced mem
+    void get_data(std::vector<struct data_node_s>& copy_data);
   
     private:
-    std::vector<struct parse_param_s> param;
+    std::vector<struct parse_param_s> params;
     std::vector<struct data_node_s> data;
-    netio* netio_obj;
+
+    rapidxml::xml_document<std::string::value_type> doc;
+
+    void recurse_child(html_node* cur_node, struct parse_param_s& param);
+    void recurse_sibling(html_node* cur_node, struct parse_param_s& param);
+    void save_node(html_node* node, struct parse_param_s& param);
+    void push_back_node(html_node* node, struct parse_param_s& param, bool attr);
 };
 
 #endif

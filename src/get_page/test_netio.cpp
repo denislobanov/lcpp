@@ -11,11 +11,11 @@ int main(void)
     netio my_netio("lcpp netio test");
 
     std::cout<<"fetching http://www.geeksaresexy.net/"<<std::endl;
-    my_netio.fetch(&web_page, "http://djrogoff.ru/");
+    my_netio.fetch(&web_page, "http://www.geeksaresexy.net/");
 
     std::cout<<"dumping to test_file.html"<<std::endl;
     std::ofstream stream;
-    stream.open("ru_test_file.html");
+    stream.open("test_file.html");
     if(stream != 0)
         stream<<web_page<<std::endl;
 

@@ -5,11 +5,12 @@
 
 #include "parser.hpp"
 
+using std::cout;
+using std::endl;
+
 int main(void)
 {
-    const std::string search_string = "geeks";
-
-    std::cout<<"loading test_file.html"<<std::endl;
+    cout<<"loading test page"<<endl;
     std::ifstream file("test_file.html");
     std::string web_page;
 
@@ -20,47 +21,48 @@ int main(void)
     web_page.assign((std::istreambuf_iterator<char>(file)),
         std::istreambuf_iterator<char>());
 
-    std::cout<<"initialising objects"<<std::endl;
-    parser link_parser("<a href=\"", "\"");
-    parser img_parser("<img src=\"", "\"");
+    //html tags to look for
+    cout<<"creating parser config"<<endl;
+    std::vector<struct parse_param_s> parse_param;
+    struct parse_param_s param;
 
-    std::cout<<"parsing.."<<std::endl;
-    link_parser.parse(web_page);
-    img_parser.parse(web_page);
+    param.parent_tag = HTML_BODY;
+    param.tag = "a";
+    param.attr = "href";
+    parse_param.push_back(param);
 
-#if 0
-    int i = title_parser.search(web_page, search_string);
-    if(i > 0)
-        std::cout<<"title_parser found "<<i<<" occurances of \'"<<search_string<<"\'"<<std::endl;
-    else
-        std::cout<<"title_parser failed to find any occurances of \'"<<search_string<<"\'!"<<std::endl;
-#endif
+    param.parent_tag = HTML_BODY;
+    param.tag = "img";
+    param.attr = "src";
+    parse_param.push_back(param);
 
-    std::cout<<"extracting data.."<<std::endl;
-    std::vector<std::string> http_links;
-    std::vector<std::string> img_links;
+    param.parent_tag = HTML_BODY;
+    param.tag = "p";
+    param.attr = "";
+    parse_param.push_back(param);
 
-    unsigned int http_link_count = link_parser.extract(web_page, http_links);
-    unsigned int img_link_count = img_parser.extract(web_page, img_links);
+    //create parser
+    cout<<"initialising parser"<<endl;
+    parser test_parser(parse_param);
 
-    unsigned int our_http_count = 0;
-    unsigned int our_img_count = 0;
-    std::cout<<"==="<<std::endl;
+    cout<<"parsing"<<endl;
+    test_parser.parse(web_page);
 
-    for(std::vector<std::string>::iterator limit = http_links.begin();
-            limit != http_links.end(); ++limit, ++our_http_count)
-        std::cout<<*limit<<std::endl;
+    //process data
+    cout<<"retrieving data"<<endl;
+    std::vector<struct data_node_s> data;
+    test_parser.get_data(data);
 
-    std::cout<<"---"<<std::endl;
+    int i = 0;
+    for(auto& entry: data) {
+        cout<<"entry "<<i<<endl;
+        cout<<"tag name ["<<entry.tag_name<<"]"<<endl;
+        cout<<"tag data ["<<entry.tag_data<<"]"<<endl;
+        cout<<"tag attr data ["<<entry.attr_data<<"]"<<endl;
+        cout<<endl;
+        ++i;
+    }
 
-    for(std::vector<std::string>::iterator limit = img_links.begin();
-            limit != img_links.end(); ++limit, ++our_img_count)
-        std::cout<<*limit<<std::endl;
-
-    std::cout<<"==="<<std::endl;
-
-    std::cout<<http_link_count<<" page links reported, "<<our_http_count<<" page links found"<<std::endl;
-    std::cout<<img_link_count<<" image links reported, "<<our_img_count<<" image links found"<<std::endl;
-    std::cout<<"done"<<std::endl;
+    cout<<"done"<<endl;
     return 0;
 }
