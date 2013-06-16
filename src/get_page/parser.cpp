@@ -8,8 +8,6 @@
 #include "netio.hpp"
 
 //Local defines
-#define DEBUG 1
-
 #if (defined(DEBUG))&&(DEBUG > 2)
 #include <fstream>
 #endif
@@ -41,35 +39,34 @@ void parser::configure(std::vector<struct parse_param_s>& parse_param)
     params = parse_param;
 }
 
-void parser::recurse_child(html_node* cur_node, struct parse_param_s& param)
+void parser::recurse_child(html_node* const cur_node, struct parse_param_s& param)
 {
-    html_node* child = cur_node->first_node(param.tag.c_str());
+    for(html_node* child = cur_node->first_node(); child; child = child->first_node()) {
+        //check its siblings too
+        recurse_sibling(child, param);
 
-    if(child != 0) {
-        //get data from all childern nodes
-        recurse_child(child, param);
-
-        //get data from all sibling nodes
-        recurse_sibling(cur_node, param);
-
-        //save data from this node
-        save_node(cur_node, param);
+        //a node we're interested in
+        if(param.tag.compare(child->name()) == 0)
+            save_node(child, param);
     }
 }
 
-void parser::recurse_sibling(html_node* cur_node, struct parse_param_s& param)
+void parser::recurse_sibling(html_node* const cur_node, struct parse_param_s& param)
 {
-    html_node* sibling = cur_node->next_sibling(param.tag.c_str());
+    dbg<<"resurse_sibling\n";
+    //find all sibling nodes
+    for(html_node* sibling = cur_node->next_sibling(); sibling; sibling = sibling->next_sibling()) {
+        dbg<<"sibling "<<sibling<<std::endl;
+        //check its childern too
+        recurse_child(sibling, param);
 
-    if(sibling != 0) {
-        recurse_sibling(cur_node, param);
-
-        //get data from this node
-        save_node(cur_node, param);
+        //a node we're interested in
+        if(param.tag.compare(sibling->name()) == 0)
+            save_node(sibling, param);
     }
 }
 
-void parser::save_node(html_node* node, struct parse_param_s& param)
+void parser::save_node(html_node* const node, struct parse_param_s& param)
 {
     //should we save attr data too
     if(param.attr.size() > 0) {
@@ -83,7 +80,7 @@ void parser::save_node(html_node* node, struct parse_param_s& param)
     }
 }
 
-void parser::push_back_node(html_node* node, struct parse_param_s& param, bool attr)
+void parser::push_back_node(html_node* const node, struct parse_param_s& param, bool attr)
 {
     struct data_node_s data_entry;
 
@@ -105,9 +102,10 @@ void parser::parse(std::string data)
     //do parse
     dbg<<"rapidxml parse\n";
     try {
-        doc.parse<rapidxml::parse_declaration_node|
-                  rapidxml::parse_no_data_nodes|
-                  rapidxml::parse_trim_whitespace
+        doc.parse<rapidxml::parse_declaration_node
+                 |rapidxml::parse_no_data_nodes
+                 |rapidxml::parse_trim_whitespace
+                 |rapidxml::parse_normalize_whitespace
                  >(&rw_data[0]);
     } catch(rapidxml::parse_error &e) {
         std::cerr<<"exception in rapidxml::parse - "<<e.what()<<std::endl;
@@ -121,22 +119,7 @@ void parser::parse(std::string data)
     //process all tags
     for(auto& param: params) {
         dbg<<"trying tag ["<<param.tag<<"]"<<std::endl;
-        html_node* cur_node = rnode->first_node(param.tag.c_str());
-
-        if(cur_node != 0) {
-            dbg<<"found tag\n";
-            
-            //check all child nodes
-            recurse_child(cur_node, param);
-
-            //and all siblings
-            recurse_sibling(cur_node, param);
-
-            //save node data
-            save_node(cur_node, param);
-        } else {
-            dbg<<"cur_node is "<<cur_node<<std::endl;
-        }
+        recurse_child(rnode, param);
     }
 }
 

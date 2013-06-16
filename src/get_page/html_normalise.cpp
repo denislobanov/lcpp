@@ -1,0 +1,55 @@
+#include <iostream>
+#include <vector>
+#include <sstream>
+
+#include <tidy.h>
+#include <buffio.h>
+#include "html_normalise.hpp"
+
+html_normalise::html_normalise(void)
+{
+}
+
+html_normalise::~html_normalise(void)
+{
+}
+
+int html_normalise::normalise(std::string& data)
+{
+    //can this be done in the constructor?
+    TidyBuffer out_buf = {0};
+    TidyBuffer err_buf = {0};
+    TidyDoc doc = tidyCreate();
+
+    //convert to xhtml. xml and html are valid options too. try?
+    tidyOptSetBool(doc, TidyXhtmlOut, yes);
+    //connect error buffer
+    tidySetErrorBuffer(doc, &err_buf);
+    
+    //parse data
+    int ret = tidyParseString(doc, data.c_str());
+
+    //normalise
+    if(ret >= 0)
+        ret = tidyCleanAndRepair(doc);
+
+    //check for errors, to force output if any were encountered
+    if(ret >= 0)
+        ret = tidyRunDiagnostics(doc);
+    if(ret > 1)
+        ret = (tidyOptSetBool(doc, TidyForceOutput, yes)? ret : -1);
+
+    //save data
+    if(ret >= 0) {
+        std::stringstream ss;
+        ss<<out_buf.bp;
+        std::string temp = ss.str();
+        data = temp;
+    }
+
+    //cleanup
+    tidyBufFree(&out_buf);
+    tidyBufFree(&err_buf);
+    tidyRelease(doc);
+    return ret;
+}

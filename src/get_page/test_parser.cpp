@@ -11,7 +11,7 @@ using std::endl;
 int main(void)
 {
     cout<<"loading test page"<<endl;
-    std::ifstream file("test_file.html");
+    std::ifstream file("test_file2.html");
     std::string web_page;
 
     file.seekg(0, std::ios::end);
@@ -58,7 +58,7 @@ int main(void)
         cout<<"entry "<<i<<endl;
         cout<<"tag name ["<<entry.tag_name<<"]"<<endl;
         cout<<"tag data ["<<entry.tag_data<<"]"<<endl;
-        cout<<"tag attr data ["<<entry.attr_data<<"]"<<endl;
+        cout<<"tag attr_data ["<<entry.attr_data<<"]"<<endl;
         cout<<endl;
         ++i;
     }

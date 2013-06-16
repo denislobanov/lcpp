@@ -46,13 +46,12 @@ class parser
     private:
     std::vector<struct parse_param_s> params;
     std::vector<struct data_node_s> data;
-
     rapidxml::xml_document<std::string::value_type> doc;
 
-    void recurse_child(html_node* cur_node, struct parse_param_s& param);
-    void recurse_sibling(html_node* cur_node, struct parse_param_s& param);
-    void save_node(html_node* node, struct parse_param_s& param);
-    void push_back_node(html_node* node, struct parse_param_s& param, bool attr);
+    void recurse_child(html_node* const cur_node, struct parse_param_s& param);
+    void recurse_sibling(html_node* const cur_node, struct parse_param_s& param);
+    void save_node(html_node* const node, struct parse_param_s& param);
+    void push_back_node(html_node* const node, struct parse_param_s& param, bool attr);
 };
 
 #endif

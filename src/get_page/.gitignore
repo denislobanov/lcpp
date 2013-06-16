@@ -9,3 +9,4 @@ test_cache
 test_database
 test_db/
 test_memory_mgr
+test_html_normalise
