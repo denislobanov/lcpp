@@ -22,9 +22,10 @@ int main(void)
         std::istreambuf_iterator<char>());
 
     //html tags to look for
-    cout<<"normalising"<<endl;
+    cout<<"init html tidy"<<endl;
     html_normalise test_normaliser;
 
+    cout<<"normalise data\n";
     int i = test_normaliser.normalise(web_page);
     cout<<"normaliser returned "<<i<<endl;
     return 0;
