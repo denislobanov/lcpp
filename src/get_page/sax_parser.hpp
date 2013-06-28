@@ -3,9 +3,8 @@
 
 #include <iostream>
 #include <vector>
-#include <rapidxml.hpp>
-//this will be implemented when basic parsing works
-//~ #include <glibmm/ustring.h> //UTF-8 string
+#include <glibmm/ustring.h> //UTF-8 string
+#include <libxml++/libxml++.h>
 
 //data returned from crawl
 struct data_node_s {
@@ -26,9 +25,7 @@ struct parse_param_s {
     std::string attr;                   //match tags with a certain attribute only
 };
 
-typedef rapidxml::xml_node<> html_node;
-
-class parser
+class parser: public xmlpp::SaxParser
 {
     public:
     parser(std::vector<struct parse_param_s>& parse_param);
@@ -36,22 +33,27 @@ class parser
 
     //reconfigure parser
     void configure(std::vector<struct parse_param_s>& parse_param);
-    
-    //walks the document tree, parsing based on configuration
-    void parse(std::string data);
 
     //copies internal data to user referenced mem
     void get_data(std::vector<struct data_node_s>& copy_data);
-  
+
+    //SAX interface
+    protected:
+    virtual void on_start_document();
+    virtual void on_end_document();
+    virtual void on_start_element(const Glib::ustring& name, const AttributeList& properties);
+    virtual void on_end_element(const Glib::ustring& name);
+    virtual void on_characters(const Glib::ustring& characters);
+    virtual void on_comment(const Glib::ustring& text);
+    virtual void on_warning(const Glib::ustring& text);
+    virtual void on_error(const Glib::ustring& text);
+    virtual void on_fatal_error(const Glib::ustring& text);
+
     private:
     std::vector<struct parse_param_s> params;
     std::vector<struct data_node_s> data;
-    rapidxml::xml_document<std::string::value_type> doc;
 
-    void recurse_child(html_node* const cur_node, struct parse_param_s& param);
-    void recurse_sibling(html_node* const cur_node, struct parse_param_s& param);
-    void save_node(html_node* const node, struct parse_param_s& param);
-    void push_back_node(html_node* const node, struct parse_param_s& param, bool attr);
+    struct data_node_s current_node;
 };
 
 #endif

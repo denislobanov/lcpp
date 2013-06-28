@@ -6,9 +6,6 @@ COMMON_OBJECTS=netio.o parser.o robots_txt.o database.o cache.o memory_mgr.o htm
 all: test_netio test_parser test_crawler test_robots_txt test_cache test_database test_memory_mgr test_html_normalise
 
 clean:
-	rm -f $(COMMON_OBJECTS)
-
-mrproper: clean
 	rm -f *.o
 	rm -f test_netio test_parser test_crawler test_robots_txt test_cache test_database test_memory_mgr test_html_normalise
 
