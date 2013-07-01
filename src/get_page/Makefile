@@ -1,13 +1,13 @@
 CC=clang++
-CPPFLAGS=-Wall -std=c++11 $(shell curl-config --cflags)
-INCLUDES=$(shell curl-config --libs) -ltidy
-COMMON_OBJECTS=netio.o parser.o robots_txt.o database.o cache.o memory_mgr.o html_normalise.o crawler_process.o
+CPPFLAGS=-Wall -std=c++11
+INCLUDES=$(shell curl-config --libs)
+COMMON_OBJECTS=netio.o parser.o robots_txt.o database.o cache.o memory_mgr.o queue_client.o crawler_mgr.o
 
-all: test_netio test_parser test_crawler test_robots_txt test_cache test_database test_memory_mgr test_html_normalise
+all: test_netio test_parser test_crawler test_robots_txt test_cache test_database test_memory_mgr test_queue_client
 
 clean:
 	rm -f *.o
-	rm -f test_netio test_parser test_crawler test_robots_txt test_cache test_database test_memory_mgr test_html_normalise
+	rm -f test_netio test_parser test_crawler test_robots_txt test_cache test_database test_memory_mgr test_queue_client
 
 test_netio: $(COMMON_OBJECTS) test_netio.o
 	$(CC) $(CPPFLAGS) $(INCLUDES) $(COMMON_OBJECTS) test_netio.o -o test_netio
@@ -33,12 +33,10 @@ test_memory_mgr: $(COMMON_OBJECTS) test_memory_mgr.o
 test_html_normalise: $(COMMON_OBJECTS) test_html_normalise.o
 	$(CC) $(CPPFLAGS) $(INCLUDES) -I shared_ptr  $(COMMON_OBJECTS) test_html_normalise.o -o test_html_normalise
 
+test_queue_client: $(COMMON_OBJECTS) test_queue_client.o
+	$(CC) $(CPPFLAGS) $(INCLUDES) $(COMMON_OBJECTS) test_queue_client.o -o test_queue_client
+
 %.o : %.cpp
-ifeq ($(CC),clang++)
-	$(CC) $(CPPFLAGS) $(pkg-config --cflags glibmm-2.4)-c $<
-else
-#	check if we need the $(INCLUDES) here
-	$(CC) $(CPPFLAGS) $(INCLUDES) -c $<
-endif
+	$(CC) $(CPPFLAGS) -c $<
 
 .PHONY: all clean

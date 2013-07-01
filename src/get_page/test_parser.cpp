@@ -11,7 +11,7 @@ using std::endl;
 int main(void)
 {
     cout<<"loading test page"<<endl;
-    std::ifstream file("test_file2.html");
+    std::ifstream file("test_file.html");
     std::string web_page;
 
     file.seekg(0, std::ios::end);

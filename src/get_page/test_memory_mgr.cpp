@@ -11,7 +11,7 @@ using std::endl;
 
 int main(void)
 {
-    memory_mgr test_mgr("./test_db");
+    memory_mgr test_mgr("./test_db", "test_agent");
     struct page_data_s* test_page;
     
     int max_runs = 40;

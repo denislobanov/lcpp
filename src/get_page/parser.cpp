@@ -8,6 +8,8 @@
 #include "netio.hpp"
 
 //Local defines
+#define DEBUG 1
+
 #if (defined(DEBUG))&&(DEBUG > 2)
 #include <fstream>
 #endif
@@ -94,7 +96,7 @@ void parser::push_back_node(html_node* const node, struct parse_param_s& param, 
     data.push_back(data_entry);
 }
 
-void parser::parse(std::string data)
+void parser::parse(std::string& data)
 {
     std::vector<char> rw_data(data.begin(), data.end());
     rw_data.push_back('\0');

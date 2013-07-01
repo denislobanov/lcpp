@@ -1,50 +1,70 @@
 #include <iostream>
 #include <fstream>
 
-#include "crawler_process.hpp"
+#include "crawler_mgr.hpp"
 #include "netio.hpp"
 #include "page_data.hpp"
 
+#define USER_AGENT "lcpp_test"
+#define DATABASE_PATH "./test_db"
+#define SEED_URL "http://www.geeksaresexy.net/"
+#define SEED_CREDIT 10
+#define CRAWL_LOOPS 10
+
+using std::cout;
+using std::endl;
+
 int main(void)
 {
-    search_grid keywords;       // search grid of nodes for keywords
-    search_grid urls;           // search grid of nodes for urls (for output_urls)
-    search_grid_node_s node;    // a single search grid node, used to compose grids
-    struct page_data_s page_node;      //contains crawl output per page
+    netio test_netio(USER_AGENT);
+    qc_config qcc = {0};
+    queue_client test_queue(qcc);
+    memory_mgr test_mmgr(DATABASE_PATH, USER_AGENT);
 
-    std::queue<std::string> output_urls;    //more urls to crawl
-    std::string test_url = "www.geeksaresexy.net";   //seed
+    //create parser config
+    std::vector<struct parse_param_s> parse_param;
+    struct parse_param_s param;
 
-    netio my_netio("lcpp crawler_process unit test");   //not thread safe, we own it
+    param.parent_tag = HTML_BODY;
+    param.tag = "a";
+    param.attr = "href";
+    parse_param.push_back(param);
 
-    //create search grids
-    node.start = "<img src=\"";
-    node.end = "\"";
-    keywords.push_back(node);
-    node.start = "<a href=\"";
-    node.end = "\"";
-    keywords.push_back(node);
+    param.parent_tag = HTML_BODY;
+    param.tag = "title";
+    param.attr = "";
+    parse_param.push_back(param);
 
-    //same thing for urls..
-    urls.push_back(node);
+    param.parent_tag = HTML_BODY;
+    param.tag = "p";
+    param.attr = "";
+    parse_param.push_back(param);
 
-    //create a crawler instance;
-    crawler_process test_crawler(&my_netio, &output_urls, keywords, urls);
+    cout<<"creating crawler_mgr"<<endl;
+    crawler_mgr test_crawler(&test_netio, &test_queue, &test_mmgr, parse_param);
 
-    enum worker_status status;
-    test_crawler.get_status(status);
-    if(status != IDLE) {
-        std::cerr<<"test_crawler.get_status != IDLE"<<std::endl;
-    } else {
-        std::cout<<"running crawler_process"<<std::endl;
+    //preseed queue
+    cout<<"seed url is: "<<SEED_URL<<" initial credit "<<SEED_CREDIT<<endl;
+    struct queue_node_s preseed_node;
+    preseed_node.url = SEED_URL;
+    preseed_node.credit = SEED_CREDIT;
+    test_queue.send(preseed_node);
 
-        test_crawler.crawl(test_url, page_node);
-        std::cout<<"crawler keywords:\n"<<std::endl;
-        for(std::vector<std::string>::iterator it = page_node.meta.begin();
-            it != page_node.meta.end(); ++it)
-        {
-            std::cout<<*it<<std::endl;
+    worker_status crawler_status;
+    test_crawler.get_status(crawler_status);
+    if(crawler_status == IDLE) {
+        cout<<"begin crawl of "<<CRAWL_LOOPS<<" pages\n";
+        test_crawler.loop(CRAWL_LOOPS);
+
+        //analyse data
+        cout<<"test queue contents are\n";
+        int i = 0;
+        while(true) {
+            struct queue_node_s node = test_queue.fetch();
+            cout<<"node "<<i<<" url ["<<node.url<<"] credit "<<node.credit<<endl;
         }
+    } else {
+        std::cerr<<"FATAL ERROR: crawler_mgr status is not IDLE (is: "<<crawler_status<<")\n";
     }
 
     return 0;

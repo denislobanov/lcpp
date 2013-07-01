@@ -38,7 +38,7 @@ class parser
     void configure(std::vector<struct parse_param_s>& parse_param);
     
     //walks the document tree, parsing based on configuration
-    void parse(std::string data);
+    void parse(std::string& data);
 
     //copies internal data to user referenced mem
     void get_data(std::vector<struct data_node_s>& copy_data);
