@@ -3,15 +3,14 @@
 
 #include <iostream>
 #include <vector>
-#include <rapidxml.hpp>
-//this will be implemented when basic parsing works
-//~ #include <glibmm/ustring.h> //UTF-8 string
+#include <glibmm/ustring.h> //UTF-8 string
+#include <libxml++.h>
 
 //data returned from crawl
 struct data_node_s {
-    std::string tag_name;                 //tag name crawled
-    std::string tag_data;                 //data contained within tag
-    std::string attr_data;   //value of each tag attribute
+    Glib::ustring tag_name;    //tag name crawled
+    Glib::ustring tag_data;    //data contained within tag
+    Glib::ustring attr_data;   //value of each tag attribute
 };
 
 //control parsing behaviour
@@ -21,12 +20,13 @@ enum parent_tag_e {
 };
 
 struct parse_param_s {
-    parent_tag_e parent_tag;
-    std::string tag;                    //tag to match
-    std::string attr;                   //match tags with a certain attribute only
+    parent_tag_e parent_tag;              //depricated
+    Glib::ustring tag;                    //    tag to match
+    Glib::ustring attr;                   //    match tags with a certain attribute only
+    Glib::ustring xpath;                  //xpath to match node
 };
 
-typedef rapidxml::xml_node<> html_node;
+typedef const xmlpp::Node html_node;
 
 class parser
 {
@@ -36,17 +36,17 @@ class parser
 
     //reconfigure parser
     void configure(std::vector<struct parse_param_s>& parse_param);
-    
+
     //walks the document tree, parsing based on configuration
     void parse(std::string& data);
 
     //copies internal data to user referenced mem
     void get_data(std::vector<struct data_node_s>& copy_data);
-  
+
     private:
     std::vector<struct parse_param_s> params;
     std::vector<struct data_node_s> data;
-    rapidxml::xml_document<std::string::value_type> doc;
+    xmlpp::DomParser dom_parser;
 
     void recurse_child(html_node* const cur_node, struct parse_param_s& param);
     void recurse_sibling(html_node* const cur_node, struct parse_param_s& param);

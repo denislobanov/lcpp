@@ -1,8 +1,8 @@
 #include <iostream>
 #include <vector>
 #include <string>
-//~ #include <glibmm/ustring.h> //UTF-8 string
-#include <rapidxml.hpp>
+#include <glibmm/ustring.h> //UTF-8 string
+#include <libxml++.h>
 
 #include "parser.hpp"
 #include "netio.hpp"
@@ -29,6 +29,11 @@
 parser::parser(std::vector<struct parse_param_s>& parse_param)
 {
     params = parse_param;
+
+    //hardwired config
+    dom_parser.set_validate(true);
+    dom_parser.set_substitute_entities(true);
+    dom_parser.set_throw_messages(false);
 }
 
 parser::~parser(void)
@@ -68,12 +73,12 @@ void parser::recurse_sibling(html_node* const cur_node, struct parse_param_s& pa
     }
 }
 
-void parser::save_node(html_node* const node, struct parse_param_s& param)
+void parser::save_node(html_node& node, struct parse_param_s& param)
 {
     //should we save attr data too
     if(param.attr.size() > 0) {
         dbg<<"atrribute matching\n";
-        if(node->first_attribute(param.attr.c_str()) != 0)
+        if(node.first_attribute(param.attr.c_str()) != 0)
             push_back_node(node, param, true);
 
     //ignoring tag params, save node anyway
@@ -82,7 +87,7 @@ void parser::save_node(html_node* const node, struct parse_param_s& param)
     }
 }
 
-void parser::push_back_node(html_node* const node, struct parse_param_s& param, bool attr)
+void parser::push_back_node(html_node& node, struct parse_param_s& param, bool attr)
 {
     struct data_node_s data_entry;
 
@@ -98,31 +103,34 @@ void parser::push_back_node(html_node* const node, struct parse_param_s& param, 
 
 void parser::parse(std::string& data)
 {
+    //crutch until we convert to glib::ustring
     std::vector<char> rw_data(data.begin(), data.end());
     rw_data.push_back('\0');
 
-    //do parse
-    dbg<<"rapidxml parse\n";
+    //DOM parse
+    dbg<<"dom_parser parse\n";
     try {
-        doc.parse<rapidxml::parse_declaration_node
-                 |rapidxml::parse_no_data_nodes
-                 |rapidxml::parse_trim_whitespace
-                 |rapidxml::parse_normalize_whitespace
-                 >(&rw_data[0]);
-    } catch(rapidxml::parse_error &e) {
-        std::cerr<<"exception in rapidxml::parse - "<<e.what()<<std::endl;
+        dom_parser.parse_memory_raw(&rw_data[0], rw_data.size());
+    } catch(const std::exception& e) {
+        std::err<<"exception in libxml++ dom_parser.parse - "<<e.what()<<std::endl;
         exit(-1); //FIXME - this is for debug only. parser should return error
     }
 
-    //find root node "<html>"
-    html_node* rnode = doc.first_node("html");
-    dbg<<"found root node "<<rnode<<std::endl;
+    if(dom_parser) {
+        dbg<<"parse succesful\n";
 
-    //process all tags
-    for(auto& param: params) {
-        dbg<<"trying tag ["<<param.tag<<"]"<<std::endl;
-        recurse_child(rnode, param);
-    }
+        html_node* rnode = dom_parser.get_document()->get_root_node();
+        dbg<<"found root node "<<rnode<<std::endl;
+
+        //process all tags
+        for(auto& param: params) {
+            dbg<<"matching xpath ["<<param.xpath<<"]"<<std::endl;
+
+            for(auto& node: rnode->find(param.xpath) {
+                save_node(node, param);
+            }
+
+        }
 }
 
 void parser::get_data(std::vector<struct data_node_s>& copy_data)
