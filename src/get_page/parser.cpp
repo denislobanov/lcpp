@@ -46,33 +46,6 @@ void parser::configure(std::vector<struct parse_param_s>& parse_param)
     params = parse_param;
 }
 
-void parser::recurse_child(html_node* const cur_node, struct parse_param_s& param)
-{
-    for(html_node* child = cur_node->first_node(); child; child = child->first_node()) {
-        //check its siblings too
-        recurse_sibling(child, param);
-
-        //a node we're interested in
-        if(param.tag.compare(child->name()) == 0)
-            save_node(child, param);
-    }
-}
-
-void parser::recurse_sibling(html_node* const cur_node, struct parse_param_s& param)
-{
-    dbg<<"resurse_sibling\n";
-    //find all sibling nodes
-    for(html_node* sibling = cur_node->next_sibling(); sibling; sibling = sibling->next_sibling()) {
-        dbg<<"sibling "<<sibling<<std::endl;
-        //check its childern too
-        recurse_child(sibling, param);
-
-        //a node we're interested in
-        if(param.tag.compare(sibling->name()) == 0)
-            save_node(sibling, param);
-    }
-}
-
 void parser::save_node(html_node& node, struct parse_param_s& param)
 {
     //should we save attr data too
@@ -122,11 +95,17 @@ void parser::parse(std::string& data)
         html_node* rnode = dom_parser.get_document()->get_root_node();
         dbg<<"found root node "<<rnode<<std::endl;
 
+        dbg<<"generating xpath\n";
+        std::string xpath = "//" + param.tag_name;
+
+        if(param.attr.size() > 0)
+            xpath += "[@" + param.attr + "]";
+
         //process all tags
         for(auto& param: params) {
-            dbg<<"matching xpath ["<<param.xpath<<"]"<<std::endl;
+            dbg<<"matching xpath ["<<xpath<<"]"<<std::endl;
 
-            for(auto& node: rnode->find(param.xpath) {
+            for(auto& node: rnode->find(xpath) {
                 save_node(node, param);
             }
 

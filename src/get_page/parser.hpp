@@ -21,8 +21,8 @@ enum parent_tag_e {
 
 struct parse_param_s {
     parent_tag_e parent_tag;              //depricated
-    Glib::ustring tag;                    //    tag to match
-    Glib::ustring attr;                   //    match tags with a certain attribute only
+    Glib::ustring tag;                    //tag to match
+    Glib::ustring attr;                   //match tags with a certain attribute only
     Glib::ustring xpath;                  //xpath to match node
 };
 
@@ -48,8 +48,6 @@ class parser
     std::vector<struct data_node_s> data;
     xmlpp::DomParser dom_parser;
 
-    void recurse_child(html_node* const cur_node, struct parse_param_s& param);
-    void recurse_sibling(html_node* const cur_node, struct parse_param_s& param);
     void save_node(html_node* const node, struct parse_param_s& param);
     void push_back_node(html_node* const node, struct parse_param_s& param, bool attr);
 };
