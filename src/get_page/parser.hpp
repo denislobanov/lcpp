@@ -47,6 +47,7 @@ class parser
     std::vector<struct parse_param_s> params;
     std::vector<struct data_node_s> data;
     xmlpp::DomParser dom_parser;
+    xmlpp::SchemaValidator validator;
 
     void save_node(html_node& node, struct parse_param_s& param);
 };

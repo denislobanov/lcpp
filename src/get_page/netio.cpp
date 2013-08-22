@@ -68,7 +68,7 @@ bool netio::default_config(bool debug)
         return false;
 
     //options
-    if((curl_ret = curl_easy_setopt(lib_handle, CURLOPT_HEADER, 1)) != CURLE_OK)
+    if((curl_ret = curl_easy_setopt(lib_handle, CURLOPT_HEADER, 0)) != CURLE_OK)
         return false;
     if((curl_ret = curl_easy_setopt(lib_handle, CURLOPT_NOPROGRESS, 1)) != CURLE_OK)
         return false;

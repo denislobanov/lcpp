@@ -32,7 +32,7 @@ parser::parser(std::vector<struct parse_param_s>& parse_param)
 
     //hardwired config
     dom_parser.set_validate(true);
-    dom_parser.set_substitute_entities(true);
+    //~ dom_parser.set_substitute_entities(true);
     dom_parser.set_throw_messages(false);
 }
 
@@ -68,6 +68,9 @@ void parser::parse(std::string& data)
     //crutch until we convert to glib::ustring
     std::vector<unsigned char> rw_data(data.begin(), data.end());
     rw_data.push_back('\0');
+
+    //Validate document before parsing
+
 
     //DOM parse
     dbg<<"dom_parser parse\n";
