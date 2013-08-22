@@ -4,7 +4,7 @@
 #include <iostream>
 #include <vector>
 #include <glibmm/ustring.h> //UTF-8 string
-#include <libxml++.h>
+#include <libxml++/libxml++.h>
 
 //data returned from crawl
 struct data_node_s {
@@ -26,7 +26,7 @@ struct parse_param_s {
     Glib::ustring xpath;                  //xpath to match node
 };
 
-typedef const xmlpp::Node html_node;
+typedef xmlpp::Node html_node;
 
 class parser
 {
@@ -48,8 +48,7 @@ class parser
     std::vector<struct data_node_s> data;
     xmlpp::DomParser dom_parser;
 
-    void save_node(html_node* const node, struct parse_param_s& param);
-    void push_back_node(html_node* const node, struct parse_param_s& param, bool attr);
+    void save_node(html_node& node, struct parse_param_s& param);
 };
 
 #endif

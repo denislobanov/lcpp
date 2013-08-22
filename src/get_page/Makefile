@@ -1,42 +1,27 @@
 CC=clang++
 CPPFLAGS=-Wall -std=c++11
-INCLUDES=$(shell curl-config --libs)
-COMMON_OBJECTS=netio.o parser.o robots_txt.o database.o cache.o memory_mgr.o queue_client.o crawler_mgr.o
+DEPENDENCIES=glibmm-2.4 libxml++-2.6
 
-all: test_netio test_parser test_crawler test_robots_txt test_cache test_database test_memory_mgr test_queue_client
+INCLUDES=$(shell pkg-config --cflags $(DEPENDENCIES))
+LDDFLAGS=$(shell curl-config --libs) $(shell pkg-config --libs $(DEPENDENCIES))
+
+COMMON_OBJECTS=netio.o parser.o robots_txt.o database.o cache.o memory_mgr.o queue_client.o crawler_mgr.o
+UNIT_TESTS=test_netio test_parser test_crawler test_robots_txt test_cache test_database test_memory_mgr test_html_normalise test_queue_client
+
+all: crawler
 
 clean:
 	rm -f *.o
 	rm -f test_netio test_parser test_crawler test_robots_txt test_cache test_database test_memory_mgr test_queue_client
 
-test_netio: $(COMMON_OBJECTS) test_netio.o
-	$(CC) $(CPPFLAGS) $(INCLUDES) $(COMMON_OBJECTS) test_netio.o -o test_netio
+crawler: $(COMMON_OBJECTS)
+	$(CC) $(LDDFLAGS) -o $@ $(COMMON_OBJECTS)
 
-test_parser: $(COMMON_OBJECTS) test_parser.o
-	$(CC) $(CPPFLAGS) $(INCLUDES) $(COMMON_OBJECTS) test_parser.o -o test_parser
-
-test_crawler: $(COMMON_OBJECTS) test_crawler.o
-	$(CC) $(CPPFLAGS) $(INCLUDES) -I shared_ptr  $(COMMON_OBJECTS) test_crawler.o -o test_crawler
-
-test_robots_txt: $(COMMON_OBJECTS) test_robots_txt.o
-	$(CC) $(CPPFLAGS) $(INCLUDES) -I shared_ptr  $(COMMON_OBJECTS) test_robots_txt.o -o test_robots_txt
-
-test_cache: $(COMMON_OBJECTS) test_cache.o
-	$(CC) $(CPPFLAGS) $(INCLUDES) -I shared_ptr  $(COMMON_OBJECTS) test_cache.o -o test_cache
-
-test_database: $(COMMON_OBJECTS) test_database.o
-	$(CC) $(CPPFLAGS) $(INCLUDES) -I shared_ptr  $(COMMON_OBJECTS) test_database.o -o test_database
-
-test_memory_mgr: $(COMMON_OBJECTS) test_memory_mgr.o
-	$(CC) $(CPPFLAGS) $(INCLUDES) -I shared_ptr  $(COMMON_OBJECTS) test_memory_mgr.o -o test_memory_mgr
-
-test_html_normalise: $(COMMON_OBJECTS) test_html_normalise.o
-	$(CC) $(CPPFLAGS) $(INCLUDES) -I shared_ptr  $(COMMON_OBJECTS) test_html_normalise.o -o test_html_normalise
-
-test_queue_client: $(COMMON_OBJECTS) test_queue_client.o
-	$(CC) $(CPPFLAGS) $(INCLUDES) $(COMMON_OBJECTS) test_queue_client.o -o test_queue_client
+$(UNIT_TESTS): $(COMMON_OBJECTS)
+	$(CC) $(CPPFLAGS) $(INCLUDES) -c $@.cpp
+	$(CC) $(LDDFLAGS) -o $@ $@.o $(COMMON_OBJECTS)
 
 %.o : %.cpp
-	$(CC) $(CPPFLAGS) -c $<
+	$(CC) $(CPPFLAGS) $(INCLUDES) -c $<
 
 .PHONY: all clean
