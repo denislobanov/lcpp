@@ -10,8 +10,8 @@ int main(void)
     std::cout<<"initialising objects"<<std::endl;
     netio my_netio("lcpp netio test");
 
-    std::cout<<"fetching http://www.w3.org/"<<std::endl;
-    my_netio.fetch(&web_page, "http://www.w3.org/");
+    std::cout<<"fetching http://www.xmlsoft.org/"<<std::endl;
+    my_netio.fetch(&web_page, "http://www.xmlsoft.org/");
 
     std::cout<<"dumping to test_file.html"<<std::endl;
     std::ofstream stream;

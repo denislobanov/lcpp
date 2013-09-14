@@ -31,8 +31,8 @@ parser::parser(std::vector<struct parse_param_s>& parse_param)
     params = parse_param;
 
     //hardwired config
-    dom_parser.set_validate(true);
-    //~ dom_parser.set_substitute_entities(true);
+    dom_parser.set_validate(false);
+    dom_parser.set_substitute_entities(true);
     dom_parser.set_throw_messages(false);
 }
 
@@ -50,16 +50,19 @@ void parser::save_node(html_node& node, struct parse_param_s& param)
 {
     struct data_node_s data_entry;
 
-    dbg<<"saving node\n";
-    const xmlpp::ContentNode& node_content = dynamic_cast<const xmlpp::ContentNode&>(node);
-    const xmlpp::Element& element_node = dynamic_cast<const xmlpp::Element&>(node);
+    dbg_2<<"saving node\n";
+    const xmlpp::ContentNode* node_content = dynamic_cast<const xmlpp::ContentNode*>(&node);
+    const xmlpp::Element* element_node = dynamic_cast<const xmlpp::Element*>(&node);
 
     data_entry.tag_name = param.tag;
-    data_entry.tag_data = node_content.get_content();
-    if(param.attr.size() > 0)
-        data_entry.attr_data = element_node.get_attribute_value(param.attr);
+    if(node_content)
+        data_entry.tag_data = node_content->get_content();
+    dbg_2<<"saving attribute\n";
+    if(element_node && param.attr.size() > 0)
+        data_entry.attr_data = element_node->get_attribute_value(param.attr);
 
     //save
+    dbg_2<<"saving data\n";
     data.push_back(data_entry);
 }
 
@@ -75,7 +78,7 @@ void parser::parse(std::string& data)
     //DOM parse
     dbg<<"dom_parser parse\n";
     try {
-        dom_parser.parse_memory_raw(&rw_data[0], rw_data.size());
+        dom_parser.parse_file(data);
     } catch(const std::exception& e) {
         std::cerr<<"exception in libxml++ dom_parser.parse - "<<e.what()<<std::endl;
         exit(-1); //FIXME - this is for debug only. parser should return error
@@ -85,7 +88,7 @@ void parser::parse(std::string& data)
         dbg<<"parse succesful\n";
 
         html_node* rnode = dom_parser.get_document()->get_root_node();
-        dbg<<"found root node "<<rnode<<std::endl;
+        dbg<<"found root node "<<rnode->get_path()<<std::endl;
 
         //process all tags
         for(auto& param: params) {

@@ -24,4 +24,4 @@ $(UNIT_TESTS): $(COMMON_OBJECTS)
 %.o : %.cpp
 	$(CC) $(CPPFLAGS) $(INCLUDES) -c $<
 
-.PHONY: all clean
+.PHONY: all clean $(UNIT_TESTS)

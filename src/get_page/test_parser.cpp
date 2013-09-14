@@ -15,29 +15,29 @@ int main(void)
     std::string web_page;
 
     file.seekg(0, std::ios::end);
-    web_page.reserve(file.tellg());
+    //~ web_page.reserve(file.tellg());
     file.seekg(0, std::ios::beg);
 
-    web_page.assign((std::istreambuf_iterator<char>(file)),
-        std::istreambuf_iterator<char>());
+    //~ web_page.assign((std::istreambuf_iterator<char>(file)),
+        //~ std::istreambuf_iterator<char>());
 
     //html tags to look for
     cout<<"creating parser config"<<endl;
     std::vector<struct parse_param_s> parse_param;
     struct parse_param_s param;
 
-    param.parent_tag = HTML_BODY;
-    param.tag = "a";
-    param.attr = "href";
-    parse_param.push_back(param);
+    //~ param.parent_tag = HTML_BODY;
+    //~ param.tag = "a";
+    //~ param.attr = "href";
+    //~ parse_param.push_back(param);
+//~
+    //~ param.parent_tag = HTML_BODY;
+    //~ param.tag = "img";
+    //~ param.attr = "src";
+    //~ parse_param.push_back(param);
 
     param.parent_tag = HTML_BODY;
-    param.tag = "img";
-    param.attr = "src";
-    parse_param.push_back(param);
-
-    param.parent_tag = HTML_BODY;
-    param.tag = "p";
+    param.tag = "title";
     param.attr = "";
     parse_param.push_back(param);
 
@@ -46,6 +46,7 @@ int main(void)
     parser test_parser(parse_param);
 
     cout<<"parsing"<<endl;
+    web_page = "http://www.xmlsoft.org/";
     test_parser.parse(web_page);
 
     //process data

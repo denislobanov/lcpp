@@ -153,6 +153,7 @@ void robots_txt::process_instruction(std::string& data, std::string& lc_data, si
 
         } else {
             std::cerr<<"agent_name.size() > eol-pos"<<std::endl;
+            std::cerr<<"string was ["<<lc_data<<"]"<<std::endl;
             process_param = false;
         }
     }

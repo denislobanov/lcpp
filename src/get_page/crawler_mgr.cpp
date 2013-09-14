@@ -107,46 +107,48 @@ void crawler_mgr::loop(int i)
             }
 
             //parse page
-            single_parser->parse(data);
+            single_parser->parse(work_item.url);
             std::vector<struct data_node_s> parse_data;
             single_parser->get_data(parse_data);
 
-            //iterate list, first we need to count totals (for tax)
-            unsigned int linked_pages = 0;
-            for(auto& it: parse_data) {
-                //all "a" tags matched only to "href" attr
-                //so can assume to be link
-                if(it.tag_name.compare("a") == 0)
-                    ++linked_pages;
-            }
-            unsigned int new_credit = page->rank/linked_pages;
-            page->rank = 0;
+            if(parse_data.size() > 0) {
+                //iterate list, first we need to count totals (for tax)
+                unsigned int linked_pages = 0;
+                for(auto& it: parse_data) {
+                    //all "a" tags matched only to "href" attr
+                    //so can assume to be link
+                    if(it.tag_name.compare("a") == 0)
+                        ++linked_pages;
+                }
+                unsigned int new_credit = page->rank/linked_pages;
+                page->rank = 0;
 
-            dbg_1<<"linked_pages "<<linked_pages<<" new_credit "<<new_credit<<std::endl;
+                dbg_1<<"linked_pages "<<linked_pages<<" new_credit "<<new_credit<<std::endl;
 
-            //extract links and text only
-            page->meta.clear(); //clear existing page description data
-            for(auto& it: parse_data) {
-                queue_node_s new_item;
+                //extract links and text only
+                page->meta.clear(); //clear existing page description data
+                for(auto& it: parse_data) {
+                    queue_node_s new_item;
 
-                //all "a" tags matched only to "href" attr
-                if(it.tag_name.compare("a") == 0) {
-                    new_item.url = it.attr_data;
-                    new_item.credit = new_credit;
-                    dbg_1<<"found link ["<<new_item.url<<"]\n";
+                    //all "a" tags matched only to "href" attr
+                    if(it.tag_name.compare("a") == 0) {
+                        new_item.url = it.attr_data;
+                        new_item.credit = new_credit;
+                        dbg_1<<"found link ["<<new_item.url<<"]\n";
 
-                //text is just saved, overwriting previous data
-                } else if(it.tag_name.compare("p") == 0) {
-                    page->meta.push_back(it.tag_data);
-                    dbg_1<<"found meta\n";
+                    //text is just saved, overwriting previous data
+                    } else if(it.tag_name.compare("p") == 0) {
+                        page->meta.push_back(it.tag_data);
+                        dbg_1<<"found meta\n";
 
-                //update page title
-                } else if(it.tag_name.compare("title") == 0) {
-                    page->title = it.tag_data;
-                    dbg_1<<"found title\n";
+                    //update page title
+                    } else if(it.tag_name.compare("title") == 0) {
+                        page->title = it.tag_data;
+                        dbg_1<<"found title\n";
 
-                } else {
-                    dbg<<"unknown tag ["<<it.tag_name<<"]\n";
+                    } else {
+                        dbg<<"unknown tag ["<<it.tag_name<<"]\n";
+                    }
                 }
             }
         }

@@ -7,7 +7,7 @@
 
 #define USER_AGENT "lcpp_test"
 #define DATABASE_PATH "./test_db"
-#define SEED_URL "http://www.geeksaresexy.net/"
+#define SEED_URL "http://www.xmlsoft.org/"
 #define SEED_CREDIT 10
 #define CRAWL_LOOPS 10
 
