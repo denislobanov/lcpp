@@ -1,10 +1,5 @@
-#if !defined(PARSER_H)
-#define PARSER_H
-
-#include <iostream>
-#include <vector>
-#include <libxml/parser.h>  //libxml2
-#include <glibmm/ustring.h>
+#if !defined(PARSER_MGR_H)
+#define PARSER_MGR_H
 
 //data returned from crawl
 struct data_node_s {
@@ -28,27 +23,22 @@ struct parse_param_s {
 
 typedef xmlpp::Node html_node;
 
-class parser
+class parser_mgr
 {
     public:
-    parser(std::vector<struct parse_param_s>& parse_param);
-    ~parser(void);
+    parser_mgr(std::vector<struct parse_param_s>& parse_param);
+    ~parser_mgr(void);
 
-    //reconfigure parser
-    void reconfigure(std::vector<struct parse_param_s>& parse_param);
+    //reconfigure parser_mgr
+    void configure(std::vector<struct parse_param_s>& parse_param);
 
     //walks the document tree, parsing based on configuration
-    void parse(Glib::ustring url);
+    void parse(std::string& data);
+
+    //copies internal data to user referenced mem
+    void get_data(std::vector<struct data_node_s>& copy_data);
 
     private:
-    std::vector<struct parse_param_s> params;
-    std::vector<struct data_node_s> data;
-
-    //libxml2
-    htmlDocPtr doc;
-    htmlNodePtr cur;
-    htmlParserOption hopts; //hard options
-    xmlXPathContextPtr xpath_ctxt;
 };
 
 #endif
