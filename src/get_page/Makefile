@@ -13,7 +13,7 @@ all: crawler
 tests: $(UNIT_TESTS)
 
 clean:
-	rm -f $(UNIT_TESTS) $(COMMON_OBJECTS)
+	rm -f $(UNIT_TESTS) *.o
 
 crawler: $(COMMON_OBJECTS)
 	$(CC) $(LDDFLAGS) -o $@ $(COMMON_OBJECTS)
