@@ -1,7 +1,7 @@
 #include <iostream>
 #include <vector>
 #include <string>
-#include <libxml/parser.h>
+#include <libxml/HTMLparser.h>
 #include <libxml/xpath.h>
 #include <glibmm/ustring.h>
 
@@ -39,15 +39,46 @@ parser::~parser(void)
     // ?
 }
 
+void parser::reconfigure(std::vector<struct parse_param_s>& parse_param)
+{
+    params = parse_param;
+}
 
+void parser::get_data(std::vector<struct data_node_s>& copy_data)
+{
+    dbg<<"data length "<<data.size()<<std::endl;
+    copy_data = data;
+
+    dbg<<"copy_data size "<<copy_data.size()<<std::endl;
 }
 
 void parser::parse(Glib::ustring url)
 {
-    doc = htmlReadFile(url, 0, hopts);
+    doc = htmlReadFile(url.c_str(), 0, hopts);
     if(doc) {
         //succesfuly parsed
+        dbg<<"parsed doc\n";
+        xpath_ctxt = xmlXPathNewContext(doc);
+        if(xpath_ctxt) {
+            //parse xpath tags
+            dbg<<"created xpath context, processing tags\n";
+            for(auto& param: params) {
+                dbg_2<<"generating xpath\n";
+                Glib::ustring xpath = "//" + param.tag;
+                if(param.attr.size() > 0)
+                    xpath += "[@" + param.attr + "]";
 
+                dbg_2<<"matching xpath ["<<xpath<<"]"<<std::endl;
+                //FIXME: see how libxml++ converts between Glib::ustring
+                //and xmlChar*
+                tags = xmlXPathEvalExpression((xmlChar *)xpath.c_str(), xpath_ctxt);
+                if(tags)
+                    dbg<<"found tags!!\n";
+            }
+        } else {
+            //FIXME: raise exception
+            std::cerr<<"Failed to create xpath_ctxt\n";
+        }
     } else {
         //raise exception
         std::cerr<<"Failed to succesfully parse "<<url<<std::endl;

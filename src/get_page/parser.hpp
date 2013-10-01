@@ -3,7 +3,8 @@
 
 #include <iostream>
 #include <vector>
-#include <libxml/parser.h>  //libxml2
+#include <libxml/HTMLparser.h>  //libxml2
+#include <libxml/xpath.h>
 #include <glibmm/ustring.h>
 
 //data returned from crawl
@@ -26,8 +27,6 @@ struct parse_param_s {
     Glib::ustring xpath;                  //xpath to match node
 };
 
-typedef xmlpp::Node html_node;
-
 class parser
 {
     public:
@@ -40,15 +39,18 @@ class parser
     //walks the document tree, parsing based on configuration
     void parse(Glib::ustring url);
 
+    //copies internal data to user referenced mem
+    void get_data(std::vector<struct data_node_s>& copy_data);
+
     private:
     std::vector<struct parse_param_s> params;
     std::vector<struct data_node_s> data;
 
     //libxml2
+    int hopts; //hard options
     htmlDocPtr doc;
-    htmlNodePtr cur;
-    htmlParserOption hopts; //hard options
     xmlXPathContextPtr xpath_ctxt;
+    xmlXPathObjectPtr tags;
 };
 
 #endif
