@@ -55,11 +55,12 @@ void parser::get_data(std::vector<struct data_node_s>& copy_data)
 
 void parser::save_nodes(struct parse_param_s& param)
 {
-    struct data_node_s data_entry;
     xmlNodeSetPtr node_set = tags->nodesetval;
     dbg_2<<"saving nodes\n";
 
     for(int i = 0; i < node_set->nodeNr; ++i) {
+        struct data_node_s data_entry;
+
         //tag_name
         data_entry.tag_name = reinterpret_cast<const char*>(node_set->nodeTab[i]->name);
 
@@ -77,9 +78,8 @@ void parser::save_nodes(struct parse_param_s& param)
         }
 
         dbg_2<<"tag name ["<<data_entry.tag_name<<"] tag data ["<<data_entry.tag_data<<"] attr_data ["<<data_entry.attr_data<<"]\n";
+        data.push_back(data_entry);
     }
-
-    data.push_back(data_entry);
 }
 
 void parser::parse(Glib::ustring url)
@@ -101,10 +101,7 @@ void parser::parse(Glib::ustring url)
 
                 dbg_2<<"matching xpath ["<<xpath<<"]"<<std::endl;
                 tags = xmlXPathEvalExpression(reinterpret_cast<const xmlChar*>(xpath.c_str()), xpath_ctxt);
-                dbg_2<<"evaluated expression\n";
-
                 if(!xmlXPathNodeSetIsEmpty(tags->nodesetval)) {
-                    dbg<<"got nodes\n";
                     save_nodes(param);
                 }
                 xmlXPathFreeObject(tags);
