@@ -53,15 +53,30 @@ void parser::get_data(std::vector<struct data_node_s>& copy_data)
     dbg<<"copy_data size "<<copy_data.size()<<std::endl;
 }
 
-void parser::save_nodes(void)
+void parser::save_nodes(struct parse_param_s& param)
 {
     struct data_node_s data_entry;
     xmlNodeSetPtr node_set = tags->nodesetval;
+    dbg_2<<"saving nodes\n";
 
     for(int i = 0; i < node_set->nodeNr; ++i) {
-        data_entry.tag_data = reinterpret_cast<const char*>(xmlNodeListGetString(doc, node_set->nodeTab[i]->children, 1));
+        //tag_name
         data_entry.tag_name = reinterpret_cast<const char*>(node_set->nodeTab[i]->name);
-        dbg_2<<"tag name ["<<data_entry.tag_name<<"] tag data ["<<data_entry.tag_data<<"]\n";
+
+        //tag_data
+        xmlChar *tmp = xmlNodeListGetString(doc, node_set->nodeTab[i]->children, 1);
+        if(tmp > 0)
+            data_entry.tag_data = reinterpret_cast<const char*>(tmp);
+        xmlFree(tmp);
+
+        //attr_data
+        if(!param.attr.empty()) {
+            tmp = xmlGetProp(node_set->nodeTab[i], reinterpret_cast<const xmlChar*>(param.attr.c_str()));
+            data_entry.attr_data = reinterpret_cast<const char *>(tmp);
+            xmlFree(tmp);
+        }
+
+        dbg_2<<"tag name ["<<data_entry.tag_name<<"] tag data ["<<data_entry.tag_data<<"] attr_data ["<<data_entry.attr_data<<"]\n";
     }
 
     data.push_back(data_entry);
@@ -73,9 +88,10 @@ void parser::parse(Glib::ustring url)
     if(doc) {
         //succesfuly parsed
         dbg<<"parsed doc\n";
-        xpath_ctxt = xmlXPathNewContext(doc);
+        xmlXPathContextPtr xpath_ctxt = xmlXPathNewContext(doc);
         if(xpath_ctxt) {
             dbg_2<<"created xpath context, processing tags\n";
+
             //parse xpath tags
             for(auto& param: params) {
                 dbg_2<<"generating xpath\n";
@@ -84,20 +100,24 @@ void parser::parse(Glib::ustring url)
                     xpath += "[@" + param.attr + "]";
 
                 dbg_2<<"matching xpath ["<<xpath<<"]"<<std::endl;
-                //FIXME: see how libxml++ converts between Glib::ustring
-                //and xmlChar*
-                tags = xmlXPathEvalExpression((xmlChar *)xpath.c_str(), xpath_ctxt);
+                tags = xmlXPathEvalExpression(reinterpret_cast<const xmlChar*>(xpath.c_str()), xpath_ctxt);
+                dbg_2<<"evaluated expression\n";
+
                 if(!xmlXPathNodeSetIsEmpty(tags->nodesetval)) {
-                    save_nodes();
+                    dbg<<"got nodes\n";
+                    save_nodes(param);
                 }
+                xmlXPathFreeObject(tags);
             }
+            xmlXPathFreeContext(xpath_ctxt);
         } else {
             //FIXME: raise exception
             std::cerr<<"Failed to create xpath_ctxt\n";
         }
-        dbg<<"done!\n";
     } else {
         //raise exception
         std::cerr<<"Failed to succesfully parse "<<url<<std::endl;
     }
+    xmlFreeDoc(doc);
+    xmlCleanupParser();
 }

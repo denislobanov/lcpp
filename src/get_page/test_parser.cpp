@@ -26,13 +26,13 @@ int main(void)
     std::vector<struct parse_param_s> parse_param;
     struct parse_param_s param;
 
-    //~ param.tag = "a";
-    //~ param.attr = "href";
-    //~ parse_param.push_back(param);
+    param.tag = "a";
+    param.attr = "href";
+    parse_param.push_back(param);
 
-    //~ param.tag = "img";
-    //~ param.attr = "src";
-    //~ parse_param.push_back(param);
+    param.tag = "img";
+    param.attr = "src";
+    parse_param.push_back(param);
 
     param.tag = "title";
     param.attr = "";

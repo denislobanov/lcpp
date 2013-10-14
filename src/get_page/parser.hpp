@@ -48,10 +48,9 @@ class parser
     //libxml2
     int hopts; //hard options
     htmlDocPtr doc;
-    xmlXPathContextPtr xpath_ctxt;
     xmlXPathObjectPtr tags;
 
-    void save_nodes(void);
+    void save_nodes(struct parse_param_s& param);
 };
 
 #endif
