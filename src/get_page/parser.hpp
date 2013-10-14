@@ -21,7 +21,6 @@ enum parent_tag_e {
 };
 
 struct parse_param_s {
-    parent_tag_e parent_tag;              //depricated
     Glib::ustring tag;                    //tag to match
     Glib::ustring attr;                   //match tags with a certain attribute only
     Glib::ustring xpath;                  //xpath to match node
@@ -51,6 +50,8 @@ class parser
     htmlDocPtr doc;
     xmlXPathContextPtr xpath_ctxt;
     xmlXPathObjectPtr tags;
+
+    void save_nodes(void);
 };
 
 #endif

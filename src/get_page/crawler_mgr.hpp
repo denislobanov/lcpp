@@ -22,7 +22,8 @@ class netio;
 #define ROBOTS_REFRESH  60*5   //seconds
 
 /**
- * status of crawler_process
+ * status of crawler_worker
+ * FIXME: this class should become the worker, move definition to manager
  */
 enum worker_status {
     ZOMBIE,         //dead
@@ -43,7 +44,7 @@ class crawler_mgr
 
     /**
      * crawl #i items from queue. development implementation.
-     * 
+     *
      * urls found during the crawl are automattically appended to queue specified on object creation
      */
     void loop(int i); //may sleep

@@ -25,17 +25,14 @@ int main(void)
     std::vector<struct parse_param_s> parse_param;
     struct parse_param_s param;
 
-    param.parent_tag = HTML_BODY;
     param.tag = "a";
     param.attr = "href";
     parse_param.push_back(param);
 
-    param.parent_tag = HTML_BODY;
     param.tag = "title";
     param.attr = "";
     parse_param.push_back(param);
 
-    param.parent_tag = HTML_BODY;
     param.tag = "p";
     param.attr = "";
     parse_param.push_back(param);

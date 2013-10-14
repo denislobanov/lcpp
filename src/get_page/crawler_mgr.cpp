@@ -99,20 +99,14 @@ void crawler_mgr::loop(int i)
         } else {
             dbg_1<<"can crawl page\n";
             page->rank += work_item.credit;
-            if(netio_obj->fetch(&data, work_item.url)) {
-                dbg<<"netio_obj->fetch OK\n";
-            } else {
-                std::cerr<<"netio_obj->fetch FAILED at url ["<<work_item.url<<"]\n";
-                exit(-1);
-            }
-
-            //parse page
             single_parser->parse(work_item.url);
+
+            //get parse data
             std::vector<struct data_node_s> parse_data;
             single_parser->get_data(parse_data);
 
+            //iterate list, first we need to count totals (for tax)
             if(parse_data.size() > 0) {
-                //iterate list, first we need to count totals (for tax)
                 unsigned int linked_pages = 0;
                 for(auto& it: parse_data) {
                     //all "a" tags matched only to "href" attr
