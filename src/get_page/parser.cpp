@@ -27,30 +27,20 @@
     #define dbg_2 0 && std::cout
 #endif
 
-parser::parser(std::vector<struct parse_param_s>& parse_param)
+parser::parser(Glib::ustring url, std::vector<struct parse_param_s>& parse_param)
 {
     params = parse_param;
+    doc_url = url;
 
     //hardwired config
-    hopts = HTML_PARSE_RECOVER|HTML_PARSE_NOERROR|HTML_PARSE_NOWARNING|HTML_PARSE_NOBLANKS;
+    int h_opt = HTML_PARSE_RECOVER|HTML_PARSE_NOERROR|HTML_PARSE_NOWARNING|HTML_PARSE_NOBLANKS;
+    doc = htmlReadFile(url.c_str(), 0, h_opt);
 }
 
 parser::~parser(void)
 {
-    // ?
-}
-
-void parser::reconfigure(std::vector<struct parse_param_s>& parse_param)
-{
-    params = parse_param;
-}
-
-void parser::get_data(std::vector<struct data_node_s>& copy_data)
-{
-    dbg<<"data length "<<data.size()<<std::endl;
-    copy_data = data;
-
-    dbg<<"copy_data size "<<copy_data.size()<<std::endl;
+    xmlFreeDoc(doc);
+    xmlCleanupParser();
 }
 
 void parser::save_nodes(struct parse_param_s& param)
@@ -82,12 +72,11 @@ void parser::save_nodes(struct parse_param_s& param)
     }
 }
 
-void parser::parse(Glib::ustring url)
+void parser::parse(void)
 {
-    doc = htmlReadFile(url.c_str(), 0, hopts);
     if(doc) {
         //succesfuly parsed
-        dbg<<"parsed doc\n";
+        dbg<<"doc valid\n";
         xmlXPathContextPtr xpath_ctxt = xmlXPathNewContext(doc);
         if(xpath_ctxt) {
             dbg_2<<"created xpath context, processing tags\n";
@@ -113,8 +102,6 @@ void parser::parse(Glib::ustring url)
         }
     } else {
         //raise exception
-        std::cerr<<"Failed to succesfully parse "<<url<<std::endl;
+        std::cerr<<"Failed to succesfully parse "<<doc_url<<std::endl;
     }
-    xmlFreeDoc(doc);
-    xmlCleanupParser();
 }

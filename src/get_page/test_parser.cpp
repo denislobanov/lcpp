@@ -40,11 +40,12 @@ int main(void)
 
     //create parser
     cout<<"initialising parser"<<endl;
-    parser test_parser(parse_param);
+    parser test_parser(web_page, parse_param);
 
     cout<<"parsing"<<endl;
     web_page = "http://www.xmlsoft.org/";
-    test_parser.parse(web_page);
+    //try catch block here
+    test_parser.parse();
 
     //process data
     cout<<"retrieving data"<<endl;

@@ -38,7 +38,7 @@ void cache::cache_housekeeping(cache_task task, std::string& url, struct page_da
         if(priority_ctl.lowest_entry == nullptr) {
             priority_ctl.lowest_entry = page;
             dbg<<"first lowest entry since time"<<std::endl;
-            
+
         } else {
             if (page->rank < priority_ctl.lowest_entry->rank) {
                 dbg<<"page rank "<<page->rank<<" is the new lowest entry"<<std::endl;
@@ -73,9 +73,9 @@ void cache::cache_housekeeping(cache_task task, std::string& url, struct page_da
         }
         break;
     }
-    
+
     default:
-        std::cerr<<"cache::cache_housekeeping_nt given unknown task"<<std::endl;
+        std::cerr<<"cache::cache_housekeeping given unknown task"<<std::endl;
         break;
     }
 }
@@ -109,7 +109,7 @@ bool cache::put_page_data(struct page_data_s* page_data, std::string& url)
     bool page_in_cache = true;
 
     priority_ctl.rw_mutex.lock();
-    
+
     if(priority_ctl.fill < PC_UPPER_WATERMARK) { //fill cache
         dbg<<"priority_ctl.fill < PC_UPPER_WATERMARK\n";
         priority_cache.insert(page);

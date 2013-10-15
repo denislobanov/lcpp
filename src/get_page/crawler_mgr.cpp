@@ -38,13 +38,10 @@ crawler_mgr::crawler_mgr(netio* nio, queue_client* qc, memory_mgr* mm, std::vect
 
     //local configure
     status = IDLE;
-    single_parser = new parser(parse_param);
+    param = parse_param;
 }
 
-crawler_mgr::~crawler_mgr(void)
-{
-    delete single_parser;
-}
+crawler_mgr::~crawler_mgr(void) {}
 
 void crawler_mgr::get_status(enum worker_status &crawler_status)
 {
@@ -99,16 +96,15 @@ void crawler_mgr::loop(int i)
         } else {
             dbg_1<<"can crawl page\n";
             page->rank += work_item.credit;
-            single_parser->parse(work_item.url);
+            parser single_parser(work_item.url, param);
 
-            //get parse data
-            std::vector<struct data_node_s> parse_data;
-            single_parser->get_data(parse_data);
+            // try catch block here
+            single_parser.parse();
 
             //iterate list, first we need to count totals (for tax)
-            if(parse_data.size() > 0) {
+            if(!single_parser.data.empty()) {
                 unsigned int linked_pages = 0;
-                for(auto& it: parse_data) {
+                for(auto& it: single_parser.data) {
                     //all "a" tags matched only to "href" attr
                     //so can assume to be link
                     if(it.tag_name.compare("a") == 0)
@@ -121,7 +117,7 @@ void crawler_mgr::loop(int i)
 
                 //extract links and text only
                 page->meta.clear(); //clear existing page description data
-                for(auto& it: parse_data) {
+                for(auto& it: single_parser.data) {
                     queue_node_s new_item;
 
                     //all "a" tags matched only to "href" attr

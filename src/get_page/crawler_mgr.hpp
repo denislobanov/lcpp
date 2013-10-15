@@ -56,8 +56,8 @@ class crawler_mgr
 
     private:
     enum worker_status status;
-    parser* single_parser;
     std::string data;
+    std::vector<struct parse_param_s> param;
 
     //objects passed to construtor
     netio* netio_obj;

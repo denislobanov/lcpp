@@ -5,6 +5,21 @@
 #include "database.hpp"
 #include "page_data.hpp"
 
+//Local defines
+#define DEBUG 5
+
+#if defined(DEBUG)
+    #define dbg std::cout<<__FILE__<<"("<<__LINE__<<"): "
+    #if DEBUG > 1
+        #define dbg_1 std::cout<<__FILE__<<"("<<__LINE__<<"): "
+    #else
+        #define dbg_1 0 && std::cout
+    #endif
+#else
+    #define dbg 0 && std::cout
+    #define dbg_1 0 && std::cout
+#endif
+
 memory_mgr::memory_mgr(std::string database_path, std::string user_agent)
 {
     mem_cache = new cache;

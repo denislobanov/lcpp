@@ -29,24 +29,20 @@ struct parse_param_s {
 class parser
 {
     public:
-    parser(std::vector<struct parse_param_s>& parse_param);
+    parser(Glib::ustring url, std::vector<struct parse_param_s>& parse_param);
     ~parser(void);
 
-    //reconfigure parser
-    void reconfigure(std::vector<struct parse_param_s>& parse_param);
-
     //walks the document tree, parsing based on configuration
-    void parse(Glib::ustring url);
+    void parse(void);
 
-    //copies internal data to user referenced mem
-    void get_data(std::vector<struct data_node_s>& copy_data);
+    //data from parsing
+    std::vector<struct data_node_s> data;
 
     private:
     std::vector<struct parse_param_s> params;
-    std::vector<struct data_node_s> data;
+    std::string doc_url;
 
     //libxml2
-    int hopts; //hard options
     htmlDocPtr doc;
     xmlXPathObjectPtr tags;
 
