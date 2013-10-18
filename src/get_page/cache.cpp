@@ -1,5 +1,6 @@
 #include <iostream>
 #include <map>
+#include <unordered_map>
 #include <mutex>
 #include <chrono>
 
@@ -32,6 +33,25 @@ cache::~cache(void)
     //nop
 }
 
+void cache::update_timestamp(data_map_t& dm, access_map_t& am, std::string url, std::chrono::steady_clock::time_point new_time)
+{
+    try {
+        //delete old timestamp from access map
+        std::chrono::steady_clock::time_point old_time = dm.at(url).timestamp;
+        am.erase(am.find(old_time));
+
+        //update data timestamp
+        dm.at(url).timestamp = new_time;
+
+        //update access time
+        am.insert(std::pair<std::chrono::steady_clock::time_point, std::string>(new_time, url));
+    } catch(const std::out_of_range& e) {
+        std::cerr<<"could not find ["<<url<<"] in data map or access map. Exception was "<<e.what()<<std::endl;
+        //rethrow exception?
+        exit(-5);
+    }
+}
+
 bool cache::get_page_data(struct page_data_s** page_data, std::string& url)
 {
     bool in_cache = false;
@@ -41,7 +61,7 @@ bool cache::get_page_data(struct page_data_s** page_data, std::string& url)
 
     try {
         *page_data = page_cache.at(url).page;
-        page_cache.at(url).timestamp = std::chrono::steady_clock::now();
+        update_timestamp(page_cache, page_access, url, std::chrono::steady_clock::now());
         in_cache = true;
 
         dbg<<"got page, desc: "<<(*page_data)->description<<std::endl;
@@ -53,7 +73,56 @@ bool cache::get_page_data(struct page_data_s** page_data, std::string& url)
     return in_cache;
 }
 
-bool cache::get_robots_txt(struct page_data_s** robots, std::string& url)
+bool cache::put_page_data(struct page_data_s* page_data, std::string& url)
+{
+    bool in_cache = true;
+    std::chrono::steady_clock::time_point new_time = std::chrono::steady_clock::now();
+
+    page_ctl.rw_mutex.lock();
+    //entries already in cache get automatically updated
+    try {
+        update_timestamp(page_cache, page_access, url, new_time);
+        dbg<<"page ["<<url<<"] already in cache, updating\n";
+    } catch(const std::out_of_range& e) {
+        data_map_t::iterator pos = page_cache.begin();
+        access_map_t::iterator apos = page_access.begin();
+        struct cache_entry_s entry;
+        entry.page = page_data;
+        entry.timestamp = new_time;
+        
+
+        //pages not in cache will need to be added in, if there's space
+        if(page_ctl.fill < PAGE_CACHE_MAX) {
+            dbg<<"space in cache to insert page ["<<url<<"]\n";
+            page_cache.insert(pos, std::pair<std::string, struct cache_entry_s>(url, entry));
+            page_access.insert(apos, std::pair<std::chrono::steady_clock::time_point, std::string>(new_time, url));
+            ++page_ctl.fill;
+
+            //kick off cache pruning job
+            prune_cache(PAGE);
+        } else {
+            std::string oldest_url = page_access.rbegin()->second;
+            
+            //insert only if page.rank > oldest cached page.rank
+            if(page_data->rank > page_cache.at(oldest_url).page->rank) {
+                dbg<<"page ["<<url<<"] outranks oldest cache entry: "<<page_data->rank<<" v "<<page_cache.at(oldest_url).page->rank<<std::endl;
+                page_access.erase(page_access.find(page_cache.at(url).timestamp));
+                page_cache.erase(page_cache.end());
+
+                page_cache.insert(pos, std::pair<std::string, struct cache_entry_s>(url, entry));
+                page_access.insert(apos, std::pair<std::chrono::steady_clock::time_point, std::string>(new_time, url));
+            } else {
+                dbg<<"not putting page in cache\n";
+                in_cache = false;
+            }
+        }
+    }
+
+    page_ctl.rw_mutex.unlock();
+    return in_cache;
+}
+
+bool cache::get_robots_txt(robots_txt** robots, std::string& url)
 {
     bool in_cache = false;
     //both getting and putting entries in cache have to be atomic
@@ -61,7 +130,7 @@ bool cache::get_robots_txt(struct page_data_s** robots, std::string& url)
 
     try {
         *robots = robots_cache.at(url).robots;
-        robots.at(url).timestamp = std::chrono::steady_clock::now();
+        update_timestamp(robots_cache, robots_access, url, std::chrono::steady_clock::now());
         in_cache = true;
 
         dbg<<"got robots\n";
@@ -73,70 +142,32 @@ bool cache::get_robots_txt(struct page_data_s** robots, std::string& url)
     return in_cache;
 }
 
-bool cache::put_page_data(struct page_data_s* page_data, std::string& url)
-{
-    bool in_cache = true;
-
-    priority_ctl.rw_mutex.lock();
-    //entries already in cache get automatically updated
-    try {
-        page_cache.at(url).timestamp = std::chrono::steady_clock::now();
-        dbg<<"page ["<<url<<"] already in cache, updating\n";
-    } catch(const std::out_of_range& e) {
-        cache_map_t::iterator pos = page_cache.begin();
-        struct cache_entry_s entry;
-        entry.page = page_data;
-        entry.timestamp = std::chrono::steady_clock::now();
-
-        //pages not in cache will need to be added in, if there's space
-        if(page_ctl.fill < PAGE_CACHE_MAX) {
-            dbg<<"space in cache to insert page ["<<url<<"]\n";
-            page_cache.insert(pos, std::pair<std::string, struct cache_entry_s>(url, entry));
-            ++page_ctl.fill;
-
-            //kick off cache pruning job
-            prune_cache(page_cache, page_ctl);
-        } else {
-            //insert only if page.rank > oldest cached page.rank
-            if(page_data->rank > page_cache.rbegin()->second.page->rank) {
-                dbg<<"page ["<<url<<"] outranks oldest cache entry: "<<page->rank<<" v "<<page_cache.rbegin()->second.page->rank<<std::endl;
-                page_cache.erase(page_cache.rbegin());
-
-                page_cache.insert(pos, std::pair<std::string, struct cache_entry_s>(url, entry));
-            } else {
-                dbg<<"not putting page in cache\n";
-                in_cache = false;
-            }
-        }
-    }
-
-    priority_ctl.rw_mutex.unlock();
-    return in_cache;
-}
-
 bool cache::put_robots_txt(robots_txt* robots, std::string& url)
 {
     bool in_cache = true;
+    std::chrono::steady_clock::time_point new_time = std::chrono::steady_clock::now();
 
     robots_ctl.rw_mutex.lock();
     //entries already in cache get automatically updated
     try {
-        robots_cache.at(url).timestamp = std::chrono::steady_clock::now();
+        update_timestamp(robots_cache, robots_access, url, new_time);
         dbg<<"robots_txt ["<<url<<"] already in cache, updating\n";
     } catch(const std::out_of_range& e) {
-        cache_map_t::iterator pos = robots_cache.begin();
+        data_map_t::iterator pos = robots_cache.begin();
+        access_map_t::iterator apos = page_access.begin();
         struct cache_entry_s entry;
         entry.robots = robots;
-        entry.timestamp = std::chrono::steady_clock::now();
+        entry.timestamp = new_time;
 
         //pages not in cache will need to be added in, if there's space
         if(robots_ctl.fill < ROBOTS_CACHE_MAX) {
             dbg<<"space in cache to insert robots_txt ["<<url<<"]\n";
             robots_cache.insert(pos, std::pair<std::string, struct cache_entry_s>(url, entry));
+            robots_access.insert(apos, std::pair<std::chrono::steady_clock::time_point, std::string>(new_time, url));
             ++robots_ctl.fill;
 
             //kick off cache pruning job
-            prune_cache(robots_cache, robots_ctl);
+            prune_cache(ROBOTS);
         } else {
             //kick oldest item if stale
             dbg<<"FIXME\n";
@@ -150,29 +181,33 @@ bool cache::put_robots_txt(robots_txt* robots, std::string& url)
 
 void cache::prune_cache(cache_type t)
 {
-    cache_map_t& cm;
-    cache_ctl_s& ctl;
+    data_map_t* dm;
+    access_map_t* am;
+    cache_ctl_s* ctl;
     int max_fill, reserve;
 
     if(t == PAGE) {
-        cm = page_cache;
-        ctl = page_ctl;
+        dm = &page_cache;
+        am = &page_access;
+        ctl = &page_ctl;
         max_fill = PAGE_CACHE_MAX;
         reserve = PAGE_CACHE_RES;
     } else {
-        cm = robots_cache;
-        ctl = robots_ctl;
+        dm = &robots_cache;
+        am = &robots_access;
+        ctl = &robots_ctl;
         max_fill = ROBOTS_CACHE_MAX;
         reserve = ROBOTS_CACHE_RES;
     }
 
     //FIXME: put this into a thread
-    while(ctl.fill-(max_fill-reserve) > 0) {
+    while(ctl->fill-(max_fill-reserve) > 0) {
         //free memory
-        delete cm.rbegin()->second.page;
-        delete cm.rbegin()->second.robots;
+        delete dm->at(am->rbegin()->second).page;
+        delete dm->at(am->rbegin()->second).robots;
 
-        cm.erase(cm.rbegin());
-        --ctl.fill;
+        dm->erase(dm->find(am->end()->second));
+        am->erase(am->end());
+        --ctl->fill;
     }
 }

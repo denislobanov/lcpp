@@ -38,11 +38,8 @@ struct page_data_s* memory_mgr::get_page(std::string& url)
     struct page_data_s* page = new struct page_data_s;
 
     //if cache fails to retrieve page, get it from the db
-    if(!mem_cache->get_page_data(&page, url)) {
-        if(!mem_db->get_page_data(page, url)) {
-            dbg_1<<"page not in cache or db\n";
-        }
-    }
+    if(!mem_cache->get_page_data(&page, url))
+        mem_db->get_page_data(page, url);
 
     //any page returned from memory_mgr is accessible by only one worker thread
     //database class performs simillar locking
@@ -63,7 +60,6 @@ void memory_mgr::put_page(struct page_data_s* page, std::string& url)
 
     //pages that dont make it into the cache get deleted
     if(!ret) {
-        delete page->robots;
         delete page;
     }
 }
@@ -73,19 +69,16 @@ robots_txt* memory_mgr::get_robots_txt(std::string& url)
     robots_txt* robots = new robots_txt(agent_name, url);
 
     //if cache fails to retrieve page, get it from the db
-    if(!mem_cache->get_page_data(&page, url)) {
-        if(!mem_db->get_page_data(page, url)) {
-            dbg_1<<"page not in cache or db\n";
-        }
-    }
+    //~ if(!mem_cache->get_robots_txt(&robots, url))
+        //~ mem_db->get_robots_txt(robots, url);
 
     //any page returned from memory_mgr is accessible by only one worker thread
     //database class performs simillar locking
-    page->access_lock.lock();
+    //~ page->access_lock.lock();
 
     //if page exists in cache or db it will be filled with stored data,
     //otherwise we return a blank page.
-    return page;
+    return robots;
 }
 
 

@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <map>
+#include <unordered_map>
 #include <mutex>
 #include <chrono>
 
@@ -43,20 +44,8 @@ enum cache_type {
     ROBOTS
 };
 
-/**
- * data agnostic comparison for sorting cache by most frequently accessed
- */
-struct cache_compare {
-    bool operator() (struct cache_entry_s * const a, struct cache_entry_s * const b)
-    {
-        // a - b, larger value is more recent
-        std::chrono::duration<double> diff = std::chrono::duration_cast<std::chrono::duration<double>>(a->timestamp, b->timestamp);
-
-        return (diff > 0 ? true:false);
-    }
-};
-
-typedef std::map<std::string, struct cache_entry_s, cache_compare> cache_map_t;
+typedef std::unordered_map<std::string, struct cache_entry_s> data_map_t;
+typedef std::map<std::chrono::steady_clock::time_point, std::string> access_map_t;
 
 /**
  * FIXME
@@ -87,14 +76,17 @@ class cache
 
     private:
     //tune in the future to specify minimum # of initial buckets
-    cache_map_t page_cache;
-    cache_map_t robots_cache;
+    data_map_t page_cache;
+    data_map_t robots_cache;
+    access_map_t page_access;
+    access_map_t robots_access;
     struct cache_ctl_s page_ctl;
     struct cache_ctl_s robots_ctl;
 
 
     //non-threaded
     void prune_cache(cache_type t);
+    void update_timestamp(data_map_t& dm, access_map_t& am, std::string url, std::chrono::steady_clock::time_point new_time);
 };
 
 #endif
