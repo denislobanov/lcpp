@@ -2,51 +2,64 @@
 #define CACHE_H
 
 #include <iostream>
-#include <unordered_map>
+#include <map>
 #include <mutex>
+#include <chrono>
 
 #include "page_data.hpp"
+#include "robots_txt.hpp"
 
 class database;
 
-//point at which items will need to be removed
-#define PC_UPPER_WATERMARK  10
-//for delayed freeing (housekeeping /thread/ implementation)
-#define PC_MAX_FILL         0//unused!
-
-//frequency cache control
-#define FC_UPPER_WATERMARK  10
-#define FC_MAX_FILL         0//unused!
+//total number of robots_txt/page_data_s entries stored in cache
+#define PAGE_CACHE_MAX   10
+#define ROBOTS_CACHE_MAX 10
+//TO DO: number of entries to keep free
+#define PAGE_CACHE_RES   0
+#define ROBOTS_CACHE_RES 0
+//total cache size is thus CACHE_MAX - CACHE_RES
 
 /**
- * part of the cache control mechanism
+ * data agnostic cache entry
  */
-struct cache_control_s {
-    page_data_s* lowest_entry;  //lowest priority/least frequent
+struct cache_entry_s {
+    //each entry should only store one
+    page_data_s* page;
+    robots_txt *robots;
+
+    std::chrono::steady_clock::time_point timestamp;
+};
+
+/**
+ * used for cache housekeeping
+ */
+struct cache_ctl_s {
     std::mutex rw_mutex;
-    unsigned int fill;          //#cache entries
+    unsigned int fill;
 };
 
-typedef std::unordered_map<std::string, struct page_data_s*> cache_map_t;
+enum cache_type {
+    PAGE,
+    ROBOTS
+};
 
 /**
- * commands for internal housekeeping method
- *  -- later to be threaded, this becomes part of internal ipc
+ * data agnostic comparison for sorting cache by most frequently accessed
  */
-enum cache_task {
-    PCACHE_INS,
-    PCACHE_RM
+struct cache_compare {
+    bool operator() (struct cache_entry_s * const a, struct cache_entry_s * const b)
+    {
+        // a - b, larger value is more recent
+        std::chrono::duration<double> diff = std::chrono::duration_cast<std::chrono::duration<double>>(a->timestamp, b->timestamp);
+
+        return (diff > 0 ? true:false);
+    }
 };
 
+typedef std::map<std::string, struct cache_entry_s, cache_compare> cache_map_t;
 
 /**
- * handles both "short term" caching of page_data_s objects in memory
- * and offloading them to the database.
- *
- * class handles all dynamic memory allocation (both for page structures
- * and via robots_txt allocation)
- *
- * NB: only priority cache is currently implemented.
+ * FIXME
  */
 class cache
 {
@@ -66,13 +79,22 @@ class cache
      */
     bool put_page_data(struct page_data_s* page_data, std::string& url);
 
+    /**
+     * same API for robots_txt as page_data_s
+     */
+    bool get_robots_txt(robots_txt** robots, std::string& url);
+    bool put_robots_txt(robots_txt* robots, std::string& url);
+
     private:
     //tune in the future to specify minimum # of initial buckets
-    cache_map_t priority_cache;
-    struct cache_control_s priority_ctl;
+    cache_map_t page_cache;
+    cache_map_t robots_cache;
+    struct cache_ctl_s page_ctl;
+    struct cache_ctl_s robots_ctl;
+
 
     //non-threaded
-    void cache_housekeeping(cache_task task, std::string& url, struct page_data_s* page);
+    void prune_cache(cache_type t);
 };
 
 #endif

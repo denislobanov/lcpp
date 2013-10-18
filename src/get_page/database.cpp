@@ -36,6 +36,7 @@ inline bool database::is_inst(std::string line, std::string inst)
 
 void database::get_page_data(struct page_data_s* page_data, std::string& url)
 {
+#if 0
     std::hash<std::string> url_hash;
     std::stringstream ss;
     std::string filename;
@@ -117,9 +118,12 @@ void database::get_page_data(struct page_data_s* page_data, std::string& url)
                 page_data->robots->import_inclusions(inclusions);
             }
         }
+
+        //perform some sort of file/access lock here (db side)
     }
 
     file_stream.close();
+#endif
 }
 
 void database::store_keywords(struct page_data_s* page_data, std::string page_hash)
@@ -167,6 +171,7 @@ void database::store_keywords(struct page_data_s* page_data, std::string page_ha
 
 void database::put_page_data(struct page_data_s* page_data, std::string& url)
 {
+#if 0
     std::hash<std::string> url_hash;
     std::stringstream ss;
     std::string filename;
@@ -199,7 +204,7 @@ void database::put_page_data(struct page_data_s* page_data, std::string& url)
         //crawl delay
         file_data<<page_data->crawl_delay<<std::endl;
         file_data<<std::endl;
-        
+
         //title
         file_data<<page_data->title<<std::endl;
         file_data<<std::endl;
@@ -216,7 +221,7 @@ void database::put_page_data(struct page_data_s* page_data, std::string& url)
         if(page_data->robots->export_exclusions(exclusions)) {
             //write seperator
             file_data<<std::endl;
-            
+
             for(auto& ex_line : exclusions)
                 file_data<<ex_line<<std::endl;
         }
@@ -234,4 +239,5 @@ void database::put_page_data(struct page_data_s* page_data, std::string& url)
     //update keywords library
     store_keywords(page_data, filename);
     page_data->access_lock.unlock();
+#endif
 }

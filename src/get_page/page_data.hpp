@@ -11,7 +11,6 @@
  * describes an entry to pass to caching/db mechanism
  */
 struct page_data_s {
-    std::string url;                //used by cache for housekeeping.
     unsigned int rank;
     std::string title;              //page title
     std::string description;        //short blob about page
@@ -20,10 +19,10 @@ struct page_data_s {
     //for root pages only (top level domains)
     time_t last_visit;
     time_t crawl_delay;
-    robots_txt* robots;
 
-    //book keeping
+    //hause keeping
     std::mutex access_lock; //only one thread may access at a time, managed by cache class
+    std::string url; //used by cache class
 };
 
 /**

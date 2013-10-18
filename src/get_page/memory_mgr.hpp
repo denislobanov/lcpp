@@ -8,7 +8,7 @@ class database;
 /**
  * controls allocating/deletion of page_data_s'
  *      for now only uses new/delete
- * 
+ *
  * to do/
  *      use a pool of pre allocated page_data_s
  *          -- fifo?
@@ -21,7 +21,10 @@ class memory_mgr
     ~memory_mgr(void);
 
     struct page_data_s* get_page(std::string& url);
-    void put_page(std::string& url, struct page_data_s* page);
+    void put_page(struct page_data_s* page, std::string& url);
+
+    robots_txt* get_robots_txt(std::string& url);
+    void put_robots_txt(robots_txt* robots, std::string& url);
 
     private:
     cache* mem_cache;

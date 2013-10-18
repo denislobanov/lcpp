@@ -13,20 +13,20 @@ int main(void)
     cache test_cache;
     std::ostringstream oss;
     int i;
-    
+
     struct page_data_s *test_page;
     std::vector<struct page_data_s*> delayed_free;
 
     //test ctl
-    const int max_pages = 2*PC_UPPER_WATERMARK;
-    
+    const int max_pages = 2*PAGE_CACHE_MAX;
+
     std::cout<<"filling cache with "<<max_pages<<" entires"<<std::endl;
     for(i = 0; i < max_pages; ++i) {
         //generate test url
         oss.str("");
         oss<<"http://test_url_"<<i<<".com/test_page"<<i<<".html";
         std::string test_url = oss.str();
-        
+
         //create a blank page
         test_page = new struct page_data_s;
         if(max_pages > PC_UPPER_WATERMARK && i > PC_UPPER_WATERMARK)
@@ -57,7 +57,7 @@ int main(void)
         if(test_cache.get_page_data(&get_test_page, test_url)) {
             cout<<"page "<<i<<" rank "<<get_test_page->rank<<endl;
             cout<<"page "<<i<<" description ["<<get_test_page->description<<"]\n"<<endl;
-            
+
         } else {
             cout<<"page "<<i<<" not in cache\n"<<endl;
         }
