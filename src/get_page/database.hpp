@@ -27,8 +27,8 @@ class database
     /**
      * same API for robots_txt as page_data_s
      */
-    void get_robots_txt(robots_txt* page_data, std::string& url);
-    void put_robots_txt(robots_txt* page_data, std::string& url);
+    void get_robots_txt(robots_txt* robots, std::string& url);
+    void put_robots_txt(robots_txt* robots, std::string& url);
 
     private:
     std::string db_path;

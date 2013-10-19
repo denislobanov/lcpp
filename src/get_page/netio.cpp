@@ -5,6 +5,19 @@
 
 #include "netio.hpp"
 
+//Local defines
+#if defined(DEBUG)
+    #define dbg std::cout<<__FILE__<<"("<<__LINE__<<"): "
+    #if DEBUG > 1
+        #define dbg_1 std::cout<<__FILE__<<"("<<__LINE__<<"): "
+    #else
+        #define dbg_1 0 && std::cout
+    #endif
+#else
+    #define dbg 0 && std::cout
+    #define dbg_1 0 && std::cout
+#endif
+
 netio::netio(std::string user_agent_string)
 {
     user_agent = user_agent_string;
@@ -42,7 +55,7 @@ bool netio::fetch(std::string* mem, std::string url)
     curl_ret = curl_easy_perform(lib_handle);
     lib_mutex.unlock();
 
-    std::cout<<"netio: size of data retrieved: "<<target_memory->size()<<std::endl;
+    dbg<<"netio: size of data retrieved: "<<target_memory->size()<<std::endl;
 
     return (curl_ret == CURLE_OK)?true:false;
 }

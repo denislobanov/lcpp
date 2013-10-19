@@ -2,6 +2,7 @@
 
 #include "database.hpp"
 #include "page_data.hpp"
+#include "netio.hpp"
 
 using std::cout;
 using std::endl;
@@ -32,9 +33,32 @@ int main(void)
     cout<<"meta: "<<endl;
     for(auto& x: my_page->meta)
         cout<<"\t"<<x<<endl;
+    cout<<"description: ["<<my_page->description<<"]"<<endl;
 
-    cout<<"description: "<<my_page->description;
-    cout<<"~~~\ndone!"<<endl;
+    test_url = "www.geeksaresexy.net";
+    netio my_netio("lcpp robots_txt unit test");
+    robots_txt* my_robots_txt = new robots_txt("sdfsdfsdf", test_url);
+    my_robots_txt->fetch(my_netio);
+
+    cout<<"\nsending robots_txt to database.."<<endl;
+    my_robots_txt->last_visit = 42;
+    my_database.put_robots_txt(my_robots_txt, test_url);
+
+    delete my_robots_txt;
+    my_robots_txt = new robots_txt("aoeuaoeu", test_url);
+
+    cout<<"reading from database.."<<endl;
+    my_database.get_robots_txt(my_robots_txt, test_url);
+
+    cout<<"last visit: "<<my_robots_txt->last_visit<<endl;
+    cout<<"crawl delay: "<<my_robots_txt->crawl_delay<<endl;
+    cout<<"exclusion list: "<<endl;
+    std::vector<std::string> exclusions_list;
+    my_robots_txt->export_exclusions(exclusions_list);
+    for(auto& x: exclusions_list)
+        std::cout<<x<<std::endl;
+    
+    cout<<"\n~~~\ndone!"<<endl;
     delete my_page;
     return 0;
 }
