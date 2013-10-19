@@ -2,8 +2,9 @@
 #include <mutex>
 #include <queue>
 #include <stdexcept>
+#include <system_error>
 
-#include "queue_client.hpp"
+#include "ipc_client.hpp"
 
 //Local defines
 #define DEBUG 1
@@ -20,18 +21,11 @@
     #define dbg_1 0 && std::cout
 #endif
 
-queue_client::queue_client(qc_config& config)
-{
-    //todo
-}
+ipc_client::ipc_client(void) {}
 
-queue_client::~queue_client(void)
-{
-    //?
-}
+ipc_client::~ipc_client(void) {}
 
-//add (send) work items to master queue. crawler manager allocates
-void queue_client::send(struct queue_node_s& data)
+void ipc_client::send_item(struct queue_node_s& data) throw(system_error)
 {
     queue_lock.lock();
     dev_queue.push(data);
@@ -40,7 +34,22 @@ void queue_client::send(struct queue_node_s& data)
     dbg<<"pushed data to queue [credit: "<<data.credit<<" url: "<<data.url<<"]\n";
 }
 
-struct queue_node_s queue_client::fetch(void)
+void ipc_client::send_status(worker_status status) throw (system_error)
+{
+    std::cerr<<"not yet implemented\n";
+}
+
+void ipc_client::send_capabilities(struct capabilities& cap) throw(system_error)
+{
+    std::cerr<<"not yet implemented\n";
+}
+
+void ipc_client::send_config(struct worker_config& config) throw(system_error)
+{
+    std::cerr<<"not yet implemented\n";
+}
+
+struct queue_node_s ipc_client::get_item(void) throw(underflow_error)
 {
     struct queue_node_s data = {0};
 
@@ -59,8 +68,16 @@ struct queue_node_s queue_client::fetch(void)
     return data;
 }
 
-//reports tax collected from pages by crawler_worker.
-void queue_client::tax_in(unsigned int tax)
+struct worker_config ipc_client::get_config(void) throw(system_error)
 {
-    return;
+    std::cerr<<"not yet implemented\n";
+
+    return 0;
+}
+
+worker_intruction ipc_client::get_intstruction(void) throw(system_error)
+{
+    std::cerr<<"not yet implemented\n";
+
+    return 0;
 }

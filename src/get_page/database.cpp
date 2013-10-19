@@ -64,7 +64,6 @@ void database::get_page_data(struct page_data_s* page_data, std::string& url)
             ss >> page_data->rank;
             dbg<<"rank line: "<<line<<std::endl;
 
-
             //page title
             getline(file_stream, line);
             getline(file_stream, line);

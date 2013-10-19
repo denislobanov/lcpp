@@ -1,7 +1,7 @@
 #include <iostream>
 #include <fstream>
 
-#include "crawler_mgr.hpp"
+#include "crawler_worker.hpp"
 #include "netio.hpp"
 #include "page_data.hpp"
 
@@ -37,8 +37,8 @@ int main(void)
     param.attr = "";
     parse_param.push_back(param);
 
-    cout<<"creating crawler_mgr"<<endl;
-    crawler_mgr test_crawler(&test_netio, &test_queue, &test_mmgr, parse_param);
+    cout<<"creating crawler_worker"<<endl;
+    crawler_worker test_crawler(&test_netio, &test_queue, &test_mmgr, parse_param);
 
     //preseed queue
     cout<<"seed url is: "<<SEED_URL<<" initial credit "<<SEED_CREDIT<<endl;
@@ -61,7 +61,7 @@ int main(void)
             cout<<"node "<<i<<" url ["<<node.url<<"] credit "<<node.credit<<endl;
         }
     } else {
-        std::cerr<<"FATAL ERROR: crawler_mgr status is not IDLE (is: "<<crawler_status<<")\n";
+        std::cerr<<"FATAL ERROR: crawler_worker status is not IDLE (is: "<<crawler_status<<")\n";
     }
 
     return 0;

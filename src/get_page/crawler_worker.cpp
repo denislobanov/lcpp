@@ -7,7 +7,7 @@
 #include <ctime>
 #include <unistd.h>
 
-#include "crawler_mgr.hpp"
+#include "crawler_worker.hpp"
 #include "parser.hpp"
 #include "netio.hpp"
 #include "robots_txt.hpp"
@@ -35,7 +35,7 @@
     #define dbg_2 0 && std::cout
 #endif
 
-crawler_mgr::crawler_mgr(netio* nio, queue_client* qc, memory_mgr* mm, std::vector<struct parse_param_s>& parse_param)
+crawler_worker::crawler_worker(netio* nio, queue_client* qc, memory_mgr* mm, std::vector<struct parse_param_s>& parse_param)
 {
     //linked objects
     netio_obj = nio;
@@ -47,21 +47,21 @@ crawler_mgr::crawler_mgr(netio* nio, queue_client* qc, memory_mgr* mm, std::vect
     param = parse_param;
 }
 
-crawler_mgr::~crawler_mgr(void) {}
+crawler_worker::~crawler_worker(void) {}
 
-void crawler_mgr::get_status(enum worker_status &crawler_status)
+void crawler_worker::get_status(enum worker_status &crawler_status)
 {
     crawler_status = status;
 }
 
-size_t crawler_mgr::root_domain(std::string& url)
+size_t crawler_worker::root_domain(std::string& url)
 {
     //  0123456
     // "http://" next "/" is at the end of the root url
     return url.find_first_of("/", 7);
 }
 
-void crawler_mgr::loop(int i)
+void crawler_worker::loop(int i)
 {
     while(--i) {
         dbg<<"nodes left: "<<i<<std::endl;

@@ -21,26 +21,15 @@ class netio;
  */
 #define ROBOTS_REFRESH  60*5   //seconds
 
-/**
- * status of crawler_worker
- * FIXME: this class should become the worker, move definition to manager
- */
-enum worker_status {
-    ZOMBIE,         //dead
-    IDLE,           //waiting for work
-    ACTIVE,         //working
-    SLEEP           //blocked (queue)
-};
-
-class crawler_mgr
+class crawler_worker
 {
     public:
     /**
      * url_fifo will only be written to. parent process reads work
      * from fifo to crawler instances
      */
-    crawler_mgr(netio* nio, queue_client* qc, memory_mgr* mm, std::vector<struct parse_param_s>& parse_param);
-    ~crawler_mgr(void);
+    crawler_worker(netio* nio, queue_client* qc, memory_mgr* mm, std::vector<struct parse_param_s>& parse_param);
+    ~crawler_worker(void);
 
     /**
      * crawl #i items from queue. development implementation.
