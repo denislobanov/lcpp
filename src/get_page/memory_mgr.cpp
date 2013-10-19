@@ -81,5 +81,8 @@ robots_txt* memory_mgr::get_robots_txt(std::string& url)
     return robots;
 }
 
+void memory_mgr::put_robots_txt(robots_txt* robots, std::string& url)
+{
+}
 
 

@@ -2,7 +2,6 @@
 #define PAGE_DATA_H
 
 #include <vector>
-#include <time.h>
 #include <mutex>
 
 #include "robots_txt.hpp"
@@ -15,10 +14,6 @@ struct page_data_s {
     std::string title;              //page title
     std::string description;        //short blob about page
     std::vector<std::string> meta;  //keywords associated with page
-
-    //for root pages only (top level domains)
-    time_t last_visit;
-    time_t crawl_delay;
 
     //hause keeping
     std::mutex access_lock; //only one thread may access at a time, managed by cache class

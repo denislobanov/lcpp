@@ -29,7 +29,7 @@ int main(void)
 
         //create a blank page
         test_page = new struct page_data_s;
-        if(max_pages > PC_UPPER_WATERMARK && i > PC_UPPER_WATERMARK)
+        if(max_pages > PAGE_CACHE_MAX && i > PAGE_CACHE_MAX)
             delayed_free.push_back(test_page);
 
         //fill with test data

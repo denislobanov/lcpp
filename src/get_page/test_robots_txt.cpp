@@ -13,7 +13,7 @@ int main(void)
     my_robots_txt.fetch(my_netio);
 
     //test crawl-delay
-    unsigned int i = (unsigned int)my_robots_txt.crawl_delay();
+    unsigned int i = (unsigned int)my_robots_txt.crawl_delay;
     std::cout<<"crawl delay: "<<i<<std::endl;
 
     //test disallow/allow control (plu export of disallow_list)

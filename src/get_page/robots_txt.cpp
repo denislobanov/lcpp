@@ -42,7 +42,7 @@ void robots_txt::fetch(netio& netio_obj)
     disallow_list.clear();
     allow_list.clear();
     can_crawl = true;
-    crawl_delay_time = DEFAULT_CRAWL_DELAY;
+    crawl_delay = DEFAULT_CRAWL_DELAY;
 
 #if (defined(DEBUG))&&(DEBUG > 2)
     //for debug, use file instead
@@ -184,9 +184,9 @@ void robots_txt::process_instruction(std::string& data, std::string& lc_data, si
 
             str >> int_value;
             if(!str)
-                crawl_delay_time = DEFAULT_CRAWL_DELAY;
+                crawl_delay = DEFAULT_CRAWL_DELAY;
             else
-                crawl_delay_time = int_value;
+                crawl_delay = int_value;
         } else if(get_param(lc_data, pos, eol, "allow:")) {
             std::string value = data.substr(pos, eol-pos);
 
@@ -214,7 +214,7 @@ void robots_txt::parse(std::string& data)
     if(data_size == 0) {
         // set defaults
         can_crawl = true;
-        crawl_delay_time = DEFAULT_CRAWL_DELAY;
+        crawl_delay = DEFAULT_CRAWL_DELAY;
     } else if(data_size > MAX_DATA_SIZE) {
         std::cerr<<"data_size > MAX_DATA_SIZE"<<std::endl;
     } else {
@@ -264,11 +264,6 @@ void robots_txt::parse(std::string& data)
             );
         }
     }
-}
-
-time_t robots_txt::crawl_delay(void)
-{
-    return crawl_delay_time;
 }
 
 void robots_txt::import_exclusions(std::vector<std::string>& data)

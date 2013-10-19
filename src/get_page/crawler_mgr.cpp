@@ -68,26 +68,24 @@ void crawler_mgr::loop(int i)
         struct page_data_s* page = mem_mgr->get_page(work_item.url);
         std::string root_url(work_item.url, 0, root_domain(work_item.url));
         dbg<<"root_url ["<<root_url<<"]\n";
-        struct page_data_s* root_page = mem_mgr->get_page(root_url);
-
-        dbg<<"root_page.url ["<<root_page->url<<"]\n";
+        robots_txt* robots = mem_mgr->get_robots_txt(root_url);
 
         //check robots_txt
-        if(std::difftime(std::time(0), root_page->last_visit) >= ROBOTS_REFRESH) {
+        if(std::difftime(std::time(0), robots->last_visit) >= ROBOTS_REFRESH) {
             dbg<<"refreshing robots_txt\n";
-            root_page->robots->fetch(*netio_obj);
+            robots->fetch(*netio_obj);
         }
 
         //crawl delay
-        while(std::difftime(std::time(0), root_page->last_visit) < root_page->crawl_delay) {
+        while(std::difftime(std::time(0), robots->last_visit) < robots->crawl_delay) {
             status = SLEEP;
-            sleep(root_page->crawl_delay);  //FIXME find other method
-            dbg<<"crawl delay not reached, sleeping for "<<root_page->crawl_delay<<" seconds\n";
+            sleep(robots->crawl_delay);  //FIXME find other method
+            dbg<<"crawl delay not reached, sleeping for "<<robots->crawl_delay<<" seconds\n";
         }
         status = ACTIVE;
 
         //can we crawl this page?
-        if(root_page->robots->exclude(work_item.url)) {
+        if(robots->exclude(work_item.url)) {
             dbg<<"robots_txt page excluded ["<<work_item.url<<"]\n";
 
             //forward credits got to tax instead
@@ -144,8 +142,8 @@ void crawler_mgr::loop(int i)
         }
 
         //put memory
-        mem_mgr->put_page(root_url, root_page);
-        mem_mgr->put_page(work_item.url, page);
+        mem_mgr->put_robots_txt(robots, root_url);
+        mem_mgr->put_page(page, work_item.url);
     }
 
     status = IDLE;

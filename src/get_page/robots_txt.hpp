@@ -2,7 +2,7 @@
 #define ROBOTS_TXT_H
 
 #include <iostream>
-#include <ctime>
+#include <chrono>
 #include <vector>
 
 class netio;
@@ -47,7 +47,12 @@ class robots_txt
     /**
      * how long to wait before recrawls
      */
-    time_t crawl_delay(void);
+    time_t crawl_delay;
+
+    /**
+     * when the page was last visited
+     */
+    time_t last_visit;
 
     /**
      * returns true if sitemap present, data set to sitemap url
@@ -76,7 +81,6 @@ class robots_txt
     std::string domain;
     std::vector<std::string> disallow_list;
     std::vector<std::string> allow_list;
-    time_t crawl_delay_time;
     std::string sitemap_url;
 
     void parse(std::string& data);
