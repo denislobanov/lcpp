@@ -24,9 +24,15 @@
     #else
         #define dbg_1 0 && std::cout
     #endif
+    #if DEBUG > 2
+        #define dbg_2 std::cout<<__FILE__<<"("<<__LINE__<<"): "
+    #else
+        #define dbg_2 0 && std::cout
+    #endif
 #else
     #define dbg 0 && std::cout
     #define dbg_1 0 && std::cout
+    #define dbg_2 0 && std::cout
 #endif
 
 crawler_mgr::crawler_mgr(netio* nio, queue_client* qc, memory_mgr* mm, std::vector<struct parse_param_s>& parse_param)
@@ -83,6 +89,7 @@ void crawler_mgr::loop(int i)
             dbg<<"crawl delay not reached, sleeping for "<<robots->crawl_delay<<" seconds\n";
         }
         status = ACTIVE;
+        robots->last_visit = std::time(0);
 
         //can we crawl this page?
         if(robots->exclude(work_item.url)) {
@@ -122,17 +129,18 @@ void crawler_mgr::loop(int i)
                     if(it.tag_name.compare("a") == 0) {
                         new_item.url = it.attr_data;
                         new_item.credit = new_credit;
-                        dbg_1<<"found link ["<<new_item.url<<"]\n";
+                        queue_obj->send(new_item);
+                        dbg_2<<"found link ["<<new_item.url<<"]\n";
 
                     //text is just saved, overwriting previous data
                     } else if(it.tag_name.compare("p") == 0) {
                         page->meta.push_back(it.tag_data);
-                        dbg_1<<"found meta\n";
+                        dbg_2<<"found meta\n";
 
                     //update page title
                     } else if(it.tag_name.compare("title") == 0) {
                         page->title = it.tag_data;
-                        dbg_1<<"found title\n";
+                        dbg_2<<"found title\n";
 
                     } else {
                         dbg<<"unknown tag ["<<it.tag_name<<"]\n";

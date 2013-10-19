@@ -47,6 +47,8 @@ struct queue_node_s queue_client::fetch(void)
         dbg<<"queue not empty..\n";
         data = dev_queue.front();
         dev_queue.pop();
+    } else {
+        exit(-4);
     }
     queue_lock.unlock();
 
