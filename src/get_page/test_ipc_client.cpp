@@ -1,15 +1,14 @@
 #include <iostream>
 #include <sstream>
 
-#include "queue_client.hpp"
+#include "ipc_client.hpp"
 
 using std::cout;
 using std::endl;
 
 int main(void)
 {
-    qc_config test_config = 1;
-    queue_client test_queue(test_config);
+    ipc_client test_ipc;
 
     //local control
     const int loops = 10;
@@ -25,12 +24,12 @@ int main(void)
         data.url = ss.str();
         
         cout<<"adding item "<<i<<"to queue\n\tcredit: "<<data.credit<<"\n\ttest_url ["<<data.url<<"]"<<endl;
-        test_queue.send(data);
+        test_ipc.send_item(data);
     }
 
     cout<<"---\nretireiving data.."<<endl;
     for(i=0; i< loops; ++i) {
-        queue_node_s data = test_queue.fetch();
+        queue_node_s data = test_ipc.get_item();
         cout<<"item "<<i<<"on queue\n\tcredit: "<<data.credit<<"\n\ttest_url ["<<data.url<<"]"<<endl;
     }
 

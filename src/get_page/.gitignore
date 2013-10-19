@@ -10,4 +10,4 @@ test_database
 test_db/
 test_memory_mgr
 test_html_normalise
-test_queue_client
+test_ipc_client

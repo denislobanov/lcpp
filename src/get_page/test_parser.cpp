@@ -40,20 +40,16 @@ int main(void)
 
     //create parser
     cout<<"initialising parser"<<endl;
-    parser test_parser(web_page, parse_param);
+    parser test_parser("http://www.xmlsoft.org/", parse_param);
 
     cout<<"parsing"<<endl;
-    web_page = "http://www.xmlsoft.org/";
     //try catch block here
     test_parser.parse();
 
     //process data
-    cout<<"retrieving data"<<endl;
-    std::vector<struct data_node_s> data;
-    test_parser.get_data(data);
-
+    cout<<"processing data"<<endl;
     int i = 0;
-    for(auto& entry: data) {
+    for(auto& entry: test_parser.data) {
         cout<<"entry "<<i<<endl;
         cout<<"tag name ["<<entry.tag_name<<"]"<<endl;
         cout<<"tag data ["<<entry.tag_data<<"]"<<endl;

@@ -32,7 +32,12 @@ cache::cache(void)
 
 cache::~cache(void)
 {
-    //nop
+    //delete all data stored in cache
+    for(auto& x: page_cache)
+        delete x.second.page;
+
+    for(auto& x: robots_cache)
+        delete x.second.robots;
 }
 
 void cache::update_timestamp(data_map_t& dm, access_map_t& am, std::string url, std::chrono::steady_clock::time_point new_time)

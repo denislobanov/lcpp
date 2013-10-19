@@ -29,8 +29,6 @@ int main(void)
 
         //fill with data
         test_page->rank = i;
-        test_page->last_visit = time(0);
-        test_page->crawl_delay = i+1;
         ss.str("");
         ss<<"test_cache.cpp generated page "<<i;
         test_page->description = ss.str();
@@ -42,7 +40,7 @@ int main(void)
             test_page->meta = {"some", "shared", "meta", "however", "not", "just"};
 
         //send back to cache
-        test_mgr.put_page(test_url, test_page);
+        test_mgr.put_page(test_page, test_url);
     }
     
     cout<<"done, reading back pages.."<<endl;
@@ -62,14 +60,12 @@ int main(void)
             cout<<"\t"<<x<<endl;
 
         cout<<"description: "<<test_page->description<<endl;
-        cout<<"last visit: "<<test_page->last_visit<<endl;
-        cout<<"crawl delay: "<<test_page->crawl_delay<<endl;
 
         //free memory - this page will not be put back to memory_mgr for deletion
         //to preserve the ending memory structure after the generating stage.
         //
         //real applications should put pages back..
-        delete test_page;
+        test_mgr.put_page(test_page, test_url);
         cout<<"~~~"<<endl;
     }
 

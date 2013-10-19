@@ -6,7 +6,7 @@ INCLUDES=$(shell pkg-config --cflags $(DEPENDENCIES))
 LDDFLAGS=$(shell curl-config --libs) $(shell pkg-config --libs $(DEPENDENCIES))
 
 COMMON_OBJECTS=netio.o parser.o robots_txt.o database.o cache.o memory_mgr.o ipc_client.o crawler_worker.o
-UNIT_TESTS=test_netio test_parser test_crawler test_robots_txt test_cache test_database test_memory_mgr test_queue_client
+UNIT_TESTS=test_netio test_parser test_crawler test_robots_txt test_cache test_database test_memory_mgr test_ipc_client
 
 all: crawler
 
