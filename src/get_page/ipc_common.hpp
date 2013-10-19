@@ -1,6 +1,7 @@
 #if !defined (IPC_COMMON_H)
 #define IPC_COMMON_H
 
+#include <glibmm/ustring.h>
 
 /**
  * status of crawler_worker
@@ -24,11 +25,17 @@ enum worker_intruction {
     CONFIGURE,      //configure worker
     GET_CONF,       //report current config
     KILL            //die now
-}
+};
 
 /**
  * configuration sent to worker
  */
+struct parse_param_s {
+    Glib::ustring tag;                    //tag to match
+    Glib::ustring attr;                   //match tags with a certain attribute only
+    Glib::ustring xpath;                  //xpath to match node
+};
+
 struct worker_config {
     std::string user_agent;
 
@@ -40,6 +47,9 @@ struct worker_config {
 
     //database
     std::string db_path;
+
+    //parser
+    std::vector<struct parse_param_s> parse_param;
 };
 
 /**

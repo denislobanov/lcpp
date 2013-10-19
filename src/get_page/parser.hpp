@@ -7,6 +7,8 @@
 #include <libxml/xpath.h>
 #include <glibmm/ustring.h>
 
+#include "ipc_common.hpp"
+
 //data returned from crawl
 struct data_node_s {
     Glib::ustring tag_name;    //tag name crawled
@@ -18,12 +20,6 @@ struct data_node_s {
 enum parent_tag_e {
     HTML_HEAD,
     HTML_BODY
-};
-
-struct parse_param_s {
-    Glib::ustring tag;                    //tag to match
-    Glib::ustring attr;                   //match tags with a certain attribute only
-    Glib::ustring xpath;                  //xpath to match node
 };
 
 class parser

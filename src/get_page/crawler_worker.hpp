@@ -3,18 +3,16 @@
 
 #include <iostream>
 #include <vector>
-#include <queue>
-#include <functional>
-#include <cstdint>
+#include <stdexcept>
 
 #include "page_data.hpp"
-#include "memory_mgr.hpp"
-#include "netio.hpp"
+#include "ipc_common.hpp"
 #include "parser.hpp"
-#include "queue_client.hpp"
+#include "ipc_client.hpp"
 
-class parser;
 class netio;
+class memory_mgr;
+class ipc_client;
 
 /**
  * Global, part of objects interface
@@ -28,7 +26,9 @@ class crawler_worker
      * url_fifo will only be written to. parent process reads work
      * from fifo to crawler instances
      */
-    crawler_worker(netio* nio, queue_client* qc, memory_mgr* mm, std::vector<struct parse_param_s>& parse_param);
+    crawler_worker();
+    //development version
+    crawler_worker(std::vector<struct parse_param_s>& parse_param);
     ~crawler_worker(void);
 
     /**
@@ -36,24 +36,25 @@ class crawler_worker
      *
      * urls found during the crawl are automattically appended to queue specified on object creation
      */
-    void loop(int i); //may sleep
+    void dev_loop(int i) throw (std::underflow_error); //may sleep
 
     /**
-     * returns status of crawler process, value will be one of worker_status enum
+     * write me, should throw exceptions
      */
-    void get_status(enum worker_status &crawler_status);
+    void main_loop(void);
 
     private:
     enum worker_status status;
+    struct worker_config config;
     std::string data;
-    std::vector<struct parse_param_s> param;
+    ipc_client ipc;
 
-    //objects passed to construtor
+    //objects dynamically allocated based on config
     netio* netio_obj;
-    queue_client* queue_obj;
     memory_mgr* mem_mgr;
 
     size_t root_domain(std::string& url);
+    void sanitize_tag(struct data_node_s& t);
 };
 
 #endif

@@ -2,7 +2,7 @@
 #define ROBOTS_TXT_H
 
 #include <iostream>
-#include <chrono>
+#include <ctime>
 #include <vector>
 
 class netio;

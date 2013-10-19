@@ -7,6 +7,7 @@
 #include <glib.h>
 
 #include "parser.hpp"
+#include "ipc_common.hpp"
 
 //Local defines
 #define DEBUG 1

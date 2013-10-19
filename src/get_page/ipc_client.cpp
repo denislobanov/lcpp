@@ -25,7 +25,7 @@ ipc_client::ipc_client(void) {}
 
 ipc_client::~ipc_client(void) {}
 
-void ipc_client::send_item(struct queue_node_s& data) throw(system_error)
+void ipc_client::send_item(struct queue_node_s& data) throw(std::system_error)
 {
     queue_lock.lock();
     dev_queue.push(data);
@@ -34,29 +34,29 @@ void ipc_client::send_item(struct queue_node_s& data) throw(system_error)
     dbg<<"pushed data to queue [credit: "<<data.credit<<" url: "<<data.url<<"]\n";
 }
 
-void ipc_client::send_status(worker_status status) throw (system_error)
+void ipc_client::send_status(worker_status status) throw (std::system_error)
 {
     std::cerr<<"not yet implemented\n";
 }
 
-void ipc_client::send_capabilities(struct capabilities& cap) throw(system_error)
+void ipc_client::send_capabilities(struct capabilities& cap) throw(std::system_error)
 {
     std::cerr<<"not yet implemented\n";
 }
 
-void ipc_client::send_config(struct worker_config& config) throw(system_error)
+void ipc_client::send_config(struct worker_config& config) throw(std::system_error)
 {
     std::cerr<<"not yet implemented\n";
 }
 
-struct queue_node_s ipc_client::get_item(void) throw(underflow_error)
+struct queue_node_s ipc_client::get_item(void) throw(std::underflow_error)
 {
     struct queue_node_s data = {0};
 
     queue_lock.lock();
-    if(dev_queue.empty()) { {
-        queue.unlock();
-        throw underflow_error("queue empty\n");
+    if(dev_queue.empty()) {
+        queue_lock.unlock();
+        throw std::underflow_error("queue empty\n");
 
     } else {
         data = dev_queue.front();
@@ -68,16 +68,17 @@ struct queue_node_s ipc_client::get_item(void) throw(underflow_error)
     return data;
 }
 
-struct worker_config ipc_client::get_config(void) throw(system_error)
+struct worker_config ipc_client::get_config(void) throw(std::system_error)
 {
+    struct worker_config config = {0};    
     std::cerr<<"not yet implemented\n";
 
-    return 0;
+    return config;
 }
 
-worker_intruction ipc_client::get_intstruction(void) throw(system_error)
+worker_intruction ipc_client::get_intstruction(void) throw(std::system_error)
 {
     std::cerr<<"not yet implemented\n";
 
-    return 0;
+    return START;
 }
