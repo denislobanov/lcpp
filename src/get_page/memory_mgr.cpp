@@ -35,11 +35,13 @@ memory_mgr::~memory_mgr(void)
 
 struct page_data_s* memory_mgr::get_page(std::string& url)
 {
-    struct page_data_s* page = new struct page_data_s;
+    struct page_data_s* page;
 
     //if cache fails to retrieve page, get it from the db
-    if(!mem_cache->get_page_data(&page, url))
+    if(!mem_cache->get_page_data(&page, url)) {
+        page = new struct page_data_s;
         mem_db->get_page_data(page, url);
+    }
 
     //any page returned from memory_mgr is accessible by only one worker thread
     //database class performs simillar locking
@@ -59,30 +61,32 @@ void memory_mgr::put_page(struct page_data_s* page, std::string& url)
     page->access_lock.unlock();
 
     //pages that dont make it into the cache get deleted
-    if(!ret) {
+    if(!ret)
         delete page;
-    }
 }
 
 robots_txt* memory_mgr::get_robots_txt(std::string& url)
 {
-    robots_txt* robots = new robots_txt(agent_name, url);
+    robots_txt* robots;
 
-    //if cache fails to retrieve page, get it from the db
-    //~ if(!mem_cache->get_robots_txt(&robots, url))
-        //~ mem_db->get_robots_txt(robots, url);
+    //if cache fails to retrieve robots_txt, get it from the db
+    if(!mem_cache->get_robots_txt(&robots, url)) {
+        robots = new robots_txt(agent_name, url);
+        mem_db->get_robots_txt(robots, url);
+    }
 
-    //any page returned from memory_mgr is accessible by only one worker thread
-    //database class performs simillar locking
-    //~ page->access_lock.lock();
-
-    //if page exists in cache or db it will be filled with stored data,
-    //otherwise we return a blank page.
+    //if it exists in cache or db it will be filled with stored data,
+    //otherwise we return a new robots_txt object
     return robots;
 }
 
 void memory_mgr::put_robots_txt(robots_txt* robots, std::string& url)
 {
+    mem_db->put_robots_txt(robots, url);
+    bool ret = mem_cache->put_robots_txt(robots, url);
+
+    if(!ret)
+        delete robots;
 }
 
 
