@@ -9,7 +9,7 @@
 #include "parser.hpp"
 
 //Local defines
-#define DEBUG 2
+#define DEBUG 1
 
 #if (defined(DEBUG))&&(DEBUG > 2)
 #include <fstream>

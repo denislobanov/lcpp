@@ -15,7 +15,7 @@
 #include "page_data.hpp"
 
 //Local defines
-#define DEBUG 5
+#define DEBUG 1
 
 #if defined(DEBUG)
     #define dbg std::cout<<__FILE__<<"("<<__LINE__<<"): "
@@ -92,7 +92,7 @@ void crawler_mgr::loop(int i)
             queue_obj->tax_in(work_item.credit);
             status = IDLE;
         } else {
-            dbg_1<<"can crawl page\n";
+            dbg<<"can crawl page\n";
             page->rank += work_item.credit;
             parser single_parser(work_item.url, param);
 
@@ -142,7 +142,9 @@ void crawler_mgr::loop(int i)
         }
 
         //put memory
+        dbg<<"robots_txt to memory\n";
         mem_mgr->put_robots_txt(robots, root_url);
+        dbg<<"page to memory\n";
         mem_mgr->put_page(page, work_item.url);
     }
 

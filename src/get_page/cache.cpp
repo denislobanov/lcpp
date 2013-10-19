@@ -10,6 +10,8 @@
 #include "page_data.hpp"
 
 //Local defines
+#define DEBUG 2
+
 #if defined(DEBUG)
     #define dbg std::cout<<__FILE__<<"("<<__LINE__<<"): "
     #if DEBUG > 1
@@ -35,21 +37,15 @@ cache::~cache(void)
 
 void cache::update_timestamp(data_map_t& dm, access_map_t& am, std::string url, std::chrono::steady_clock::time_point new_time)
 {
-    try {
-        //delete old timestamp from access map
-        std::chrono::steady_clock::time_point old_time = dm.at(url).timestamp;
-        am.erase(am.find(old_time));
+    //delete old timestamp from access map
+    std::chrono::steady_clock::time_point old_time = dm.at(url).timestamp;
+    am.erase(am.find(old_time));
 
-        //update data timestamp
-        dm.at(url).timestamp = new_time;
+    //update data timestamp
+    dm.at(url).timestamp = new_time;
 
-        //update access time
-        am.insert(std::pair<std::chrono::steady_clock::time_point, std::string>(new_time, url));
-    } catch(const std::out_of_range& e) {
-        std::cerr<<"could not find ["<<url<<"] in data map or access map. Exception was "<<e.what()<<std::endl;
-        //rethrow exception?
-        exit(-5);
-    }
+    //update access time
+    am.insert(std::pair<std::chrono::steady_clock::time_point, std::string>(new_time, url));
 }
 
 bool cache::get_page_data(struct page_data_s** page_data, std::string& url)
@@ -84,8 +80,7 @@ bool cache::put_page_data(struct page_data_s* page_data, std::string& url)
         update_timestamp(page_cache, page_access, url, new_time);
         dbg<<"page ["<<url<<"] already in cache, updating\n";
     } catch(const std::out_of_range& e) {
-        data_map_t::iterator pos = page_cache.begin();
-        access_map_t::iterator apos = page_access.begin();
+        access_map_t::iterator pos = page_access.begin();
         struct cache_entry_s entry;
         entry.page = page_data;
         entry.timestamp = new_time;
@@ -94,8 +89,9 @@ bool cache::put_page_data(struct page_data_s* page_data, std::string& url)
         //pages not in cache will need to be added in, if there's space
         if(page_ctl.fill < PAGE_CACHE_MAX) {
             dbg<<"space in cache to insert page ["<<url<<"]\n";
-            page_cache.insert(pos, std::pair<std::string, struct cache_entry_s>(url, entry));
-            page_access.insert(apos, std::pair<std::chrono::steady_clock::time_point, std::string>(new_time, url));
+            page_cache.insert(std::pair<std::string, struct cache_entry_s>(url, entry));
+            dbg_1<<"updating access map\n";
+            page_access.insert(pos, std::pair<std::chrono::steady_clock::time_point, std::string>(new_time, url));
             ++page_ctl.fill;
 
             //kick off cache pruning job
@@ -109,14 +105,15 @@ bool cache::put_page_data(struct page_data_s* page_data, std::string& url)
                 page_access.erase(page_access.find(page_cache.at(url).timestamp));
                 page_cache.erase(page_cache.end());
 
-                page_cache.insert(pos, std::pair<std::string, struct cache_entry_s>(url, entry));
-                page_access.insert(apos, std::pair<std::chrono::steady_clock::time_point, std::string>(new_time, url));
+                page_cache.insert(std::pair<std::string, struct cache_entry_s>(url, entry));
+                page_access.insert(pos, std::pair<std::chrono::steady_clock::time_point, std::string>(new_time, url));
             } else {
                 dbg<<"not putting page in cache\n";
                 in_cache = false;
             }
         }
     }
+    dbg<<"done\n";
 
     page_ctl.rw_mutex.unlock();
     return in_cache;
@@ -153,8 +150,7 @@ bool cache::put_robots_txt(robots_txt* robots, std::string& url)
         update_timestamp(robots_cache, robots_access, url, new_time);
         dbg<<"robots_txt ["<<url<<"] already in cache, updating\n";
     } catch(const std::out_of_range& e) {
-        data_map_t::iterator pos = robots_cache.begin();
-        access_map_t::iterator apos = page_access.begin();
+        //~ access_map_t::iterator pos = page_access.begin();
         struct cache_entry_s entry;
         entry.robots = robots;
         entry.timestamp = new_time;
@@ -162,8 +158,9 @@ bool cache::put_robots_txt(robots_txt* robots, std::string& url)
         //pages not in cache will need to be added in, if there's space
         if(robots_ctl.fill < ROBOTS_CACHE_MAX) {
             dbg<<"space in cache to insert robots_txt ["<<url<<"]\n";
-            robots_cache.insert(pos, std::pair<std::string, struct cache_entry_s>(url, entry));
-            robots_access.insert(apos, std::pair<std::chrono::steady_clock::time_point, std::string>(new_time, url));
+            robots_cache.insert(std::pair<std::string, struct cache_entry_s>(url, entry));
+            dbg_1<<"updating access map\n";
+            robots_access.insert(std::pair<std::chrono::steady_clock::time_point, std::string>(new_time, url));
             ++robots_ctl.fill;
 
             //kick off cache pruning job
@@ -187,12 +184,14 @@ void cache::prune_cache(cache_type t)
     int max_fill, reserve;
 
     if(t == PAGE) {
+        dbg<<"pruning page cache\n";
         dm = &page_cache;
         am = &page_access;
         ctl = &page_ctl;
         max_fill = PAGE_CACHE_MAX;
         reserve = PAGE_CACHE_RES;
     } else {
+        dbg<<"pruning robots cache\n";
         dm = &robots_cache;
         am = &robots_access;
         ctl = &robots_ctl;
@@ -201,7 +200,13 @@ void cache::prune_cache(cache_type t)
     }
 
     //FIXME: put this into a thread
+    dbg_1<<"ctl->fill "<<ctl->fill<<std::endl;
+    dbg_1<<"max_fill "<<max_fill<<std::endl;
+    dbg_1<<"reserve "<<reserve<<std::endl;
+
     while(ctl->fill-(max_fill-reserve) > 0) {
+        dbg_1<<"pages to prune "<<ctl->fill-(max_fill-reserve)<<std::endl;
+
         //free memory
         delete dm->at(am->rbegin()->second).page;
         delete dm->at(am->rbegin()->second).robots;
@@ -209,5 +214,7 @@ void cache::prune_cache(cache_type t)
         dm->erase(dm->find(am->end()->second));
         am->erase(am->end());
         --ctl->fill;
+        dbg_1<<"fill "<<ctl->fill<<std::endl;
+        exit(-5);
     }
 }

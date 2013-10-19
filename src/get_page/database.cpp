@@ -8,6 +8,8 @@
 #include "robots_txt.hpp"
 
 //Local defines
+#define DEBUG 2
+
 #if defined(DEBUG)
     #define dbg std::cout<<__FILE__<<"("<<__LINE__<<"): "
     #if DEBUG > 1
@@ -268,11 +270,13 @@ void database::put_robots_txt(robots_txt* robots, std::string& url)
 
         //both inclusions and exclusions vectors are independantly optional
         if(robots->export_exclusions(exclusions)) {
+            dbg_1<<"exclusion list present, saving\n";
             for(auto& ex_line : exclusions)
                 file_data<<ex_line<<std::endl;
         }
 
         if(robots->export_inclusions(inclusions)) {
+            dbg_1<<"niclusion list present, saving\n";
             file_data<<std::endl;
             for(auto& inc_line: inclusions)
                 file_data<<inc_line<<std::endl;

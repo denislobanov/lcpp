@@ -36,7 +36,7 @@ struct cache_entry_s {
  */
 struct cache_ctl_s {
     std::mutex rw_mutex;
-    unsigned int fill;
+    int fill;
 };
 
 enum cache_type {
