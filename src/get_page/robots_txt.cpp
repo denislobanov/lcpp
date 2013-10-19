@@ -29,6 +29,8 @@ robots_txt::robots_txt(std::string user_agent, std::string root_domain)
     agent_name = user_agent;
     domain = root_domain;
     process_param = false;  //set to true on matching user-agent by process instruction
+    last_visit = 0;
+    crawl_delay = DEFAULT_CRAWL_DELAY;
 }
 
 robots_txt::~robots_txt(void)
@@ -183,9 +185,7 @@ void robots_txt::process_instruction(std::string& data, std::string& lc_data, si
             std::stringstream str(value);
 
             str >> int_value;
-            if(!str)
-                crawl_delay = DEFAULT_CRAWL_DELAY;
-            else
+            if(str)
                 crawl_delay = int_value;
         } else if(get_param(lc_data, pos, eol, "allow:")) {
             std::string value = data.substr(pos, eol-pos);
@@ -212,7 +212,7 @@ void robots_txt::parse(std::string& data)
 
     //site does not have a robots.txt or failed to retrieve one
     if(data_size == 0) {
-        // set defaults
+        // reset defaults
         can_crawl = true;
         crawl_delay = DEFAULT_CRAWL_DELAY;
     } else if(data_size > MAX_DATA_SIZE) {

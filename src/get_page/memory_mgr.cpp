@@ -38,7 +38,9 @@ struct page_data_s* memory_mgr::get_page(std::string& url)
     struct page_data_s* page;
 
     //if cache fails to retrieve page, get it from the db
+    dbg<<"trying to get page from cache\n";
     if(!mem_cache->get_page_data(&page, url)) {
+        dbg<<"page not in cache, trying database\n";
         page = new struct page_data_s;
         mem_db->get_page_data(page, url);
     }
@@ -61,8 +63,10 @@ void memory_mgr::put_page(struct page_data_s* page, std::string& url)
     page->access_lock.unlock();
 
     //pages that dont make it into the cache get deleted
-    if(!ret)
+    if(!ret) {
+        dbg<<"page did not make it to cache, deleting\n";
         delete page;
+    }
 }
 
 robots_txt* memory_mgr::get_robots_txt(std::string& url)
@@ -70,7 +74,9 @@ robots_txt* memory_mgr::get_robots_txt(std::string& url)
     robots_txt* robots;
 
     //if cache fails to retrieve robots_txt, get it from the db
+    dbg<<"trying cache for robots_txt\n";
     if(!mem_cache->get_robots_txt(&robots, url)) {
+        dbg<<"object not in cache, trying database\n";
         robots = new robots_txt(agent_name, url);
         mem_db->get_robots_txt(robots, url);
     }
@@ -85,8 +91,10 @@ void memory_mgr::put_robots_txt(robots_txt* robots, std::string& url)
     mem_db->put_robots_txt(robots, url);
     bool ret = mem_cache->put_robots_txt(robots, url);
 
-    if(!ret)
+    if(!ret) {
+        dbg<<"object did not make it to cache, deleting\n";
         delete robots;
+    }
 }
 
 
