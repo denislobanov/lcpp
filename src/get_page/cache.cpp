@@ -85,11 +85,11 @@ bool cache::put_page_data(struct page_data_s* page_data, std::string& url)
         update_timestamp(page_cache, page_access, url, new_time);
         dbg<<"page ["<<url<<"] already in cache, updating\n";
     } catch(const std::out_of_range& e) {
-        access_map_t::iterator pos = page_access.begin();
+        access_map_t::iterator pos = page_access.end();
         struct cache_entry_s entry;
         entry.page = page_data;
         entry.timestamp = new_time;
-        
+
 
         //pages not in cache will need to be added in, if there's space
         if(page_ctl.fill < PAGE_CACHE_MAX) {
@@ -102,13 +102,13 @@ bool cache::put_page_data(struct page_data_s* page_data, std::string& url)
             //kick off cache pruning job
             prune_cache(PAGE);
         } else {
-            std::string oldest_url = page_access.rbegin()->second;
-            
+            std::string oldest_url = page_access.begin()->second;
+
             //insert only if page.rank > oldest cached page.rank
             if(page_data->rank > page_cache.at(oldest_url).page->rank) {
                 dbg<<"page ["<<url<<"] outranks oldest cache entry: "<<page_data->rank<<" v "<<page_cache.at(oldest_url).page->rank<<std::endl;
-                page_access.erase(page_access.find(page_cache.at(url).timestamp));
-                page_cache.erase(page_cache.end());
+                page_access.erase(page_cache.at(oldest_url).timestamp);
+                page_cache.erase(page_cache.find(oldest_url));
 
                 page_cache.insert(std::pair<std::string, struct cache_entry_s>(url, entry));
                 page_access.insert(pos, std::pair<std::chrono::steady_clock::time_point, std::string>(new_time, url));
@@ -213,11 +213,11 @@ void cache::prune_cache(cache_type t)
         dbg_1<<"pages to prune "<<ctl->fill-(max_fill-reserve)<<std::endl;
 
         //free memory
-        delete dm->at(am->rbegin()->second).page;
-        delete dm->at(am->rbegin()->second).robots;
+        delete dm->at(am->begin()->second).page;
+        delete dm->at(am->begin()->second).robots;
 
-        dm->erase(dm->find(am->end()->second));
-        am->erase(am->end());
+        dm->erase(dm->find(am->begin()->second));
+        am->erase(am->begin());
         --ctl->fill;
         dbg_1<<"fill "<<ctl->fill<<std::endl;
         exit(-5);

@@ -15,7 +15,6 @@ int main(void)
     int i;
 
     struct page_data_s *test_page;
-    std::vector<struct page_data_s*> delayed_free;
 
     //test ctl
     const int max_pages = 2*PAGE_CACHE_MAX;
@@ -27,12 +26,8 @@ int main(void)
         oss<<"http://test_url_"<<i<<".com/test_page"<<i<<".html";
         std::string test_url = oss.str();
 
-        //create a blank page
+        //create a blank page & fill it with test data
         test_page = new struct page_data_s;
-        if(max_pages > PAGE_CACHE_MAX && i > PAGE_CACHE_MAX)
-            delayed_free.push_back(test_page);
-
-        //fill with test data
         test_page->rank = i;
         oss.str("");
         oss<<"test_cache.cpp generated page "<<i;
@@ -62,11 +57,6 @@ int main(void)
             cout<<"page "<<i<<" not in cache\n"<<endl;
         }
     }
-
-    //delete test pages
-    std::cout<<"freeing memory"<<std::endl;
-    for(auto page: delayed_free)
-        delete page;
 
     return 0;
 }
