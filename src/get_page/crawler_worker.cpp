@@ -16,7 +16,7 @@
 
 //Local defines
 #define DEBUG 1
-#define SEED_URL "http://www.xmlsoft.org/"
+#define SEED_URL "https://en.wikipedia.org/wiki/Microprocessor"
 #define SEED_CREDIT 2048
 
 #if defined(DEBUG)
@@ -71,9 +71,10 @@ crawler_worker::~crawler_worker(void)
 
 size_t crawler_worker::root_domain(std::string& url)
 {
-    //  0123456
-    // "http://" next "/" is at the end of the root url
-    return url.find_first_of("/", 7);
+    //consider longest scheme name
+    //  01234567
+    // "https://" next "/" is at the end of the root url
+    return url.find_first_of("/", 8);
 }
 
 void crawler_worker::dev_loop(int i) throw(std::underflow_error)
@@ -107,7 +108,7 @@ void crawler_worker::dev_loop(int i) throw(std::underflow_error)
                     status = SLEEP;
                     sleep(robots->crawl_delay);
                     dbg<<"crawl delay not reached, sleeping for "<<robots->crawl_delay<<" seconds\n";
-                }            
+                }
                 status = ACTIVE;
                 robots->last_visit = std::time(0);
 
@@ -126,7 +127,7 @@ void crawler_worker::dev_loop(int i) throw(std::underflow_error)
                     for(auto& d: single_parser.data) {
                         //this is a good time to sanitise crawled data
                         sanitize_tag(d);
-                        
+
                         //all "a" tags matched only to "href" attr
                         //so can assume to be link
                         if(d.tag_name.compare("a") == 0)
