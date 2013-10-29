@@ -30,7 +30,19 @@ enum worker_intruction {
 /**
  * configuration sent to worker
  */
-struct parse_param_s {
+enum tag_type_e {
+    url,
+    title,
+    description,
+    meta,
+    email,
+    image,
+    other
+};
+
+struct tagdb_s {
+    tag_type_e tag_type;
+
     Glib::ustring tag;                    //tag to match
     Glib::ustring attr;                   //match tags with a certain attribute only
     Glib::ustring xpath;                  //xpath to match node
@@ -49,7 +61,7 @@ struct worker_config {
     std::string db_path;
 
     //parser
-    std::vector<struct parse_param_s> parse_param;
+    std::vector<struct tagdb_s> parse_param;
 };
 
 /**

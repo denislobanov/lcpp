@@ -28,9 +28,8 @@
     #define dbg_2 0 && std::cout
 #endif
 
-parser::parser(Glib::ustring url, std::vector<struct parse_param_s>& parse_param)
+parser::parser(Glib::ustring url)
 {
-    params = parse_param;
     doc_url = url;
 
     //hardwired config
@@ -44,7 +43,7 @@ parser::~parser(void)
     xmlCleanupParser();
 }
 
-void parser::save_nodes(struct parse_param_s& param)
+void parser::save_nodes(struct tagdb_s& param)
 {
     xmlNodeSetPtr node_set = tags->nodesetval;
     dbg_2<<"saving nodes\n";
@@ -73,7 +72,7 @@ void parser::save_nodes(struct parse_param_s& param)
     }
 }
 
-void parser::parse(void)
+void parser::parse(std::vector<struct tagdb_s>& param)
 {
     if(doc) {
         //succesfuly parsed
@@ -83,16 +82,12 @@ void parser::parse(void)
             dbg_2<<"created xpath context, processing tags\n";
 
             //parse xpath tags
-            for(auto& param: params) {
-                dbg_2<<"generating xpath\n";
-                Glib::ustring xpath = "//" + param.tag;
-                if(param.attr.size() > 0)
-                    xpath += "[@" + param.attr + "]";
+            for(auto& p: param) {
+                dbg_2<<"matching xpath ["<<p.xpath<<"]"<<std::endl;
 
-                dbg_2<<"matching xpath ["<<xpath<<"]"<<std::endl;
-                tags = xmlXPathEvalExpression(reinterpret_cast<const xmlChar*>(xpath.c_str()), xpath_ctxt);
+                tags = xmlXPathEvalExpression(reinterpret_cast<const xmlChar*>(p.xpath.c_str()), xpath_ctxt);
                 if(!xmlXPathNodeSetIsEmpty(tags->nodesetval)) {
-                    save_nodes(param);
+                    save_nodes(p);
                 }
                 xmlXPathFreeObject(tags);
             }

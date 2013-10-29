@@ -6,6 +6,7 @@
 #include <unordered_map>
 #include <mutex>
 #include <chrono>
+#include <glibmm/ustring.h>
 
 #include "page_data.hpp"
 #include "robots_txt.hpp"
@@ -44,8 +45,8 @@ enum cache_type {
     ROBOTS
 };
 
-typedef std::unordered_map<std::string, struct cache_entry_s> data_map_t;
-typedef std::map<std::chrono::steady_clock::time_point, std::string> access_map_t;
+typedef std::unordered_map<Glib::ustring, struct cache_entry_s> data_map_t;
+typedef std::map<std::chrono::steady_clock::time_point, Glib::ustring> access_map_t;
 
 /**
  * FIXME
@@ -60,19 +61,19 @@ class cache
      * url is hashed and a page_data_s retrieved.
      * returns true if a page was found in cache
      */
-    bool get_page_data(struct page_data_s** page_data, std::string& url);
+    bool get_page_data(struct page_data_s** page_data, Glib::ustring& url);
 
     /**
      * page is potentially cached, depending on criteria and sent to the db
      * returns true if a page makes it to cache
      */
-    bool put_page_data(struct page_data_s* page_data, std::string& url);
+    bool put_page_data(struct page_data_s* page_data, Glib::ustring& url);
 
     /**
      * same API for robots_txt as page_data_s
      */
-    bool get_robots_txt(robots_txt** robots, std::string& url);
-    bool put_robots_txt(robots_txt* robots, std::string& url);
+    bool get_robots_txt(robots_txt** robots, Glib::ustring& url);
+    bool put_robots_txt(robots_txt* robots, Glib::ustring& url);
 
     private:
     //tune in the future to specify minimum # of initial buckets
@@ -86,7 +87,7 @@ class cache
 
     //non-threaded
     void prune_cache(cache_type t);
-    void update_timestamp(data_map_t& dm, access_map_t& am, std::string url, std::chrono::steady_clock::time_point new_time);
+    void update_timestamp(data_map_t& dm, access_map_t& am, Glib::ustring url, std::chrono::steady_clock::time_point new_time);
 };
 
 #endif

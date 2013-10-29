@@ -3,21 +3,21 @@
 
 #include <vector>
 #include <mutex>
+#include <glibmm/ustring.h>
 
-#include "robots_txt.hpp"
 
 /**
  * describes an entry to pass to caching/db mechanism
  */
 struct page_data_s {
     unsigned int rank;
-    std::string title;              //page title
-    std::string description;        //short blob about page
-    std::vector<std::string> meta;  //keywords associated with page
+    Glib::ustring title;              //page title
+    Glib::ustring description;        //short blob about page
+    std::vector<Glib::ustring> meta;  //keywords associated with page
 
     //hause keeping
     std::mutex access_lock; //only one thread may access at a time, managed by cache class
-    std::string url; //used by cache class
+    Glib::ustring url; //used by cache class
 };
 
 /**
@@ -25,7 +25,7 @@ struct page_data_s {
  */
 struct queue_node_s {
     unsigned int credit;    //cash given to link from referring page
-    std::string url;
+    Glib::ustring url;
 };
 
 #endif

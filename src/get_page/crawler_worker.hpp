@@ -28,7 +28,7 @@ class crawler_worker
      */
     crawler_worker();
     //development version
-    crawler_worker(std::vector<struct parse_param_s>& parse_param);
+    crawler_worker(std::vector<struct tagdb_s>& parse_param);
     ~crawler_worker(void);
 
     /**

@@ -3,7 +3,8 @@
 #include <string>
 #include <stdexcept>
 #include <ctime>
-#include <unistd.h>     //sleep()
+#include <unistd.h>         //sleep()
+#include <glibmm/ustring.h> //utf-8 strings
 
 #include "crawler_worker.hpp"
 #include "parser.hpp"
@@ -16,7 +17,7 @@
 
 //Local defines
 #define DEBUG 1
-#define SEED_URL "https://en.wikipedia.org/wiki/Microprocessor"
+#define SEED_URL "http://en.wikipedia.org/wiki/Microprocessor"
 #define SEED_CREDIT 2048
 
 #if defined(DEBUG)
@@ -38,7 +39,7 @@
 #endif
 
 //development version, makes assumptions until IPC is in place
-crawler_worker::crawler_worker(std::vector<struct parse_param_s>& parse_param)
+crawler_worker::crawler_worker(std::vector<struct tagdb_s>& parse_param)
 {
     //pretend configuration
     status = READY;
@@ -74,6 +75,7 @@ size_t crawler_worker::root_domain(std::string& url)
     //consider longest scheme name
     //  01234567
     // "https://" next "/" is at the end of the root url
+    dbg<<"url ["<<url<<"] root domain is char 0 -> "<<url.find_first_of("/", 8)<<std::endl;
     return url.find_first_of("/", 8);
 }
 
@@ -89,7 +91,7 @@ void crawler_worker::dev_loop(int i) throw(std::underflow_error)
 
             //get memory
             struct page_data_s* page = mem_mgr->get_page(work_item.url);
-            std::string root_url(work_item.url, 0, root_domain(work_item.url));
+            Glib::ustring root_url(work_item.url, 0, root_domain(work_item.url));
             dbg<<"root_url ["<<root_url<<"]\n";
             robots_txt* robots = mem_mgr->get_robots_txt(root_url);
 
@@ -189,11 +191,40 @@ void crawler_worker::main_loop(void)
     dbg<<"not yet implemented\n";
 }
 
+/* to do
+ * use new tagdb_s configuration structur
+ * sanitize should check tag/attr v enum, plus tag data etc
+ * fix up missing domain, scheme etc
+ *  - handle relative links
+ */
+
+
 void crawler_worker::sanitize_tag(struct data_node_s& t)
 {
-    //mait_to: tags to meta
-#if 0
-    if(t.tag_name.compare("a") == 0) {
-        if(t.attr_data.compare("")
-#endif
+    switch(t.tag_type) {
+    case url:
+    {
+        if(t.tag_name.compare("a") == 0) {
+            // FIXME: proper https support, for now convert https to
+            //http schemes
+            if(t.attr_data.substr(0, 5).compare("https") == 0) {
+                dbg_1<<"removing ssl scheme from ["<<t.attr_data<<"]\n";
+                t.attr_data.erase(4, 1);
+                dbg_2<<"now ["<<t.attr_data<<"]\n";
+            } else if(t.attr_data.substr(0, 4).compare("http") != 0) {
+                dbg<<"not a valid url ["<<t.attr_data<<"] dropping\n";
+            }
+        }
+        break;
+    }
+
+    case title:
+    case description:
+    case meta:
+    case email:
+    case image:
+    case other:
+    default:
+        //for now, do nothing
+    }
 }

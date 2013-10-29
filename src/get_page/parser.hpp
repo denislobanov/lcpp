@@ -14,35 +14,39 @@ struct data_node_s {
     Glib::ustring tag_name;    //tag name crawled
     Glib::ustring tag_data;    //data contained within tag
     Glib::ustring attr_data;   //value of each tag attribute
+    tag_type_e tag_type;       //type of tag that this /should/ be
 };
 
-//control parsing behaviour
-enum parent_tag_e {
-    HTML_HEAD,
-    HTML_BODY
-};
+/* to do
+ * give parser netio object on creation
+ *  - libcurl is needed for https access (and others?)
+ *  - see libxml2 nanohttp limitations
+ * pass tagdb_s config to parse()
+ *  - no need to copy config each time
+ */
+
+
 
 class parser
 {
     public:
-    parser(Glib::ustring url, std::vector<struct parse_param_s>& parse_param);
+    parser(Glib::ustring url);
     ~parser(void);
 
     //walks the document tree, parsing based on configuration
-    void parse(void);
+    void parse(std::vector<struct tagdb_s>& param);
 
     //data from parsing
     std::vector<struct data_node_s> data;
 
     private:
-    std::vector<struct parse_param_s> params;
     std::string doc_url;
 
     //libxml2
     htmlDocPtr doc;
     xmlXPathObjectPtr tags;
 
-    void save_nodes(struct parse_param_s& param);
+    void save_nodes(struct tagdb_s& param);
 };
 
 #endif

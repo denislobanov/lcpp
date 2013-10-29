@@ -4,6 +4,7 @@
 
 class cache;
 class database;
+class robots_txt;
 
 /**
  * controls allocating/deletion of page_data_s'
@@ -20,11 +21,11 @@ class memory_mgr
     memory_mgr(std::string database_path, std::string user_agent);
     ~memory_mgr(void);
 
-    struct page_data_s* get_page(std::string& url);
-    void put_page(struct page_data_s* page, std::string& url);
+    struct page_data_s* get_page(Glib::ustring& url);
+    void put_page(struct page_data_s* page, Glib::ustring& url);
 
-    robots_txt* get_robots_txt(std::string& url);
-    void put_robots_txt(robots_txt* robots, std::string& url);
+    robots_txt* get_robots_txt(Glib::ustring& url);
+    void put_robots_txt(robots_txt* robots, Glib::ustring& url);
 
     private:
     cache* mem_cache;

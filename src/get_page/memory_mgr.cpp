@@ -1,4 +1,5 @@
 #include <iostream>
+#include <glibmm/ustring.h>
 
 #include "memory_mgr.hpp"
 #include "cache.hpp"
@@ -33,7 +34,7 @@ memory_mgr::~memory_mgr(void)
     delete mem_db;
 }
 
-struct page_data_s* memory_mgr::get_page(std::string& url)
+struct page_data_s* memory_mgr::get_page(Glib::ustring& url)
 {
     struct page_data_s* page;
 
@@ -54,7 +55,7 @@ struct page_data_s* memory_mgr::get_page(std::string& url)
     return page;
 }
 
-void memory_mgr::put_page(struct page_data_s* page, std::string& url)
+void memory_mgr::put_page(struct page_data_s* page, Glib::ustring& url)
 {
     mem_db->put_page_data(page, url);
     bool ret = mem_cache->put_page_data(page, url);
@@ -69,7 +70,7 @@ void memory_mgr::put_page(struct page_data_s* page, std::string& url)
     }
 }
 
-robots_txt* memory_mgr::get_robots_txt(std::string& url)
+robots_txt* memory_mgr::get_robots_txt(Glib::ustring& url)
 {
     robots_txt* robots;
 
@@ -86,7 +87,7 @@ robots_txt* memory_mgr::get_robots_txt(std::string& url)
     return robots;
 }
 
-void memory_mgr::put_robots_txt(robots_txt* robots, std::string& url)
+void memory_mgr::put_robots_txt(robots_txt* robots, Glib::ustring& url)
 {
     mem_db->put_robots_txt(robots, url);
     bool ret = mem_cache->put_robots_txt(robots, url);

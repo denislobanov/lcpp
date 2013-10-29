@@ -4,6 +4,7 @@
 #include "crawler_worker.hpp"
 #include "netio.hpp"
 #include "page_data.hpp"
+#include "ipc_common.hpp"
 
 using std::cout;
 using std::endl;
@@ -16,16 +17,16 @@ int main(void)
     std::vector<struct parse_param_s> parse_param;
     struct parse_param_s param;
 
-    param.tag = "a";
-    param.attr = "href";
+    param.tag_type = url;
+    param.xpath = "//a[@href]";
     parse_param.push_back(param);
 
-    param.tag = "title";
-    param.attr = "";
+    param.tag_type = meta;
+    param.xpath = "//img[@src]";
     parse_param.push_back(param);
 
-    param.tag = "p";
-    param.attr = "";
+    param.tag_type = title;
+    param.tag = "//title";
     parse_param.push_back(param);
 
     cout<<"creating crawler_worker"<<endl;

@@ -4,6 +4,7 @@
 #include <vector>
 
 #include "parser.hpp"
+#include "ipc_common.hpp"
 
 using std::cout;
 using std::endl;
@@ -23,19 +24,19 @@ int main(void)
 
     //html tags to look for
     cout<<"creating parser config"<<endl;
-    std::vector<struct parse_param_s> parse_param;
-    struct parse_param_s param;
+    std::vector<struct tagdb_s> parse_param;
+    struct tagdb_s param;
 
-    param.tag = "a";
-    param.attr = "href";
+    param.tag_type = url;
+    param.xpath = "//a[@href]";
     parse_param.push_back(param);
 
-    param.tag = "img";
-    param.attr = "src";
+    param.tag_type = image;
+    param.xpath = "//img[@src]";
     parse_param.push_back(param);
 
-    param.tag = "title";
-    param.attr = "";
+    param.tag_type = title;
+    param.tag = "//title";
     parse_param.push_back(param);
 
     //create parser
