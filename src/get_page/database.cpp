@@ -2,6 +2,7 @@
 #include <functional>
 #include <fstream>
 #include <sstream>
+#include <glibmm/ustring.h>
 
 #include "database.hpp"
 #include "page_data.hpp"
@@ -37,14 +38,14 @@ inline bool database::is_inst(std::string line, std::string inst)
     return line.compare(0, inst.length(), inst) == 0 ? true : false;
 }
 
-void database::get_page_data(struct page_data_s* page_data, std::string& url)
+void database::get_page_data(struct page_data_s* page_data, Glib::ustring& url)
 {
     std::hash<std::string> url_hash;
     std::stringstream ss;
     std::string filename;
 
     //create filename for lookup
-    ss<<url_hash(url);
+    ss<<url_hash(url.raw());
     filename = ss.str();
 
     dbg<<"page_data_s filename: "<<filename<<std::endl;
@@ -90,7 +91,7 @@ void database::get_page_data(struct page_data_s* page_data, std::string& url)
 
     file_stream.close();
 }
-
+q
 void database::store_keywords(struct page_data_s* page_data, std::string page_hash)
 {
     for(auto& keyword: page_data->meta) {
@@ -134,14 +135,14 @@ void database::store_keywords(struct page_data_s* page_data, std::string page_ha
     }
 }
 
-void database::put_page_data(struct page_data_s* page_data, std::string& url)
+void database::put_page_data(struct page_data_s* page_data, Glib::ustring& url)
 {
     std::hash<std::string> url_hash;
     std::stringstream ss;
     std::string filename;
 
     //create filename
-    ss<<url_hash(url);
+    ss<<url_hash(url.raw());
     filename = ss.str();
 
     //avoid concurrent writes to the same file
@@ -174,14 +175,14 @@ void database::put_page_data(struct page_data_s* page_data, std::string& url)
     store_keywords(page_data, filename);
 }
 
-void database::get_robots_txt(robots_txt* robots, std::string& url)
+void database::get_robots_txt(robots_txt* robots, Glib::ustring& url)
 {
     std::hash<std::string> url_hash;
     std::stringstream ss;
     std::string filename;
 
     //create filename for lookup
-    ss<<url_hash(url);
+    ss<<url_hash(url.raw());
     filename = ss.str();
 
     dbg<<"robots_txt filename: "<<filename<<std::endl;
@@ -239,7 +240,7 @@ void database::get_robots_txt(robots_txt* robots, std::string& url)
 }
 
 
-void database::put_robots_txt(robots_txt* robots, std::string& url)
+void database::put_robots_txt(robots_txt* robots, Glib::ustring& url)
 {
     std::hash<std::string> url_hash;
     std::stringstream ss;

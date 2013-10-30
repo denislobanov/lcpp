@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <functional>
+#include <glibmm/ustring.h>
 
 #include "page_data.hpp"
 #include "robots_txt.hpp"
@@ -17,18 +18,18 @@ class database
      * url is hashed and a page_data_s retrieved.
      * if no page_data_s is present, a new one is allocated.
      */
-    void get_page_data(struct page_data_s* page_data, std::string& url);
+    void get_page_data(struct page_data_s* page_data, Glib::ustring& url);
 
     /**
      * page is potentially cached, depending on criteria and sent to the db
      */
-    void put_page_data(struct page_data_s* page_data, std::string& url);
+    void put_page_data(struct page_data_s* page_data, Glib::ustring& url);
 
     /**
      * same API for robots_txt as page_data_s
      */
-    void get_robots_txt(robots_txt* robots, std::string& url);
-    void put_robots_txt(robots_txt* robots, std::string& url);
+    void get_robots_txt(robots_txt* robots, Glib::ustring& url);
+    void put_robots_txt(robots_txt* robots, Glib::ustring& url);
 
     private:
     std::string db_path;

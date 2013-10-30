@@ -70,7 +70,7 @@ crawler_worker::~crawler_worker(void)
     delete mem_mgr;
 }
 
-size_t crawler_worker::root_domain(std::string& url)
+size_t crawler_worker::root_domain(Glib::ustring& url)
 {
     //consider longest scheme name
     //  01234567

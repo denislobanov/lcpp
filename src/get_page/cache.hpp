@@ -45,8 +45,8 @@ enum cache_type {
     ROBOTS
 };
 
-typedef std::unordered_map<Glib::ustring, struct cache_entry_s> data_map_t;
-typedef std::map<std::chrono::steady_clock::time_point, Glib::ustring> access_map_t;
+typedef std::unordered_map<std::string, struct cache_entry_s> data_map_t;
+typedef std::map<std::chrono::steady_clock::time_point, std::string> access_map_t;
 
 /**
  * FIXME
@@ -87,7 +87,7 @@ class cache
 
     //non-threaded
     void prune_cache(cache_type t);
-    void update_timestamp(data_map_t& dm, access_map_t& am, Glib::ustring url, std::chrono::steady_clock::time_point new_time);
+    void update_timestamp(data_map_t& dm, access_map_t& am, std::string url, std::chrono::steady_clock::time_point new_time);
 };
 
 #endif
