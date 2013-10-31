@@ -10,7 +10,7 @@
 #include "ipc_common.hpp"
 
 //Local defines
-#define DEBUG 1
+#define DEBUG 5
 
 #if (defined(DEBUG))&&(DEBUG > 2)
 #include <fstream>
@@ -28,7 +28,7 @@
     #define dbg_2 0 && std::cout
 #endif
 
-parser::parser(Glib::ustring url)
+parser::parser(std::string url)
 {
     doc_url = url;
 
@@ -66,6 +66,9 @@ void parser::save_nodes(struct tagdb_s& param)
             data_entry.attr_data = reinterpret_cast<const char *>(tmp);
             xmlFree(tmp);
         }
+
+        //(expected)tag_type
+        data_entry.tag_type = param.tag_type;
 
         dbg_2<<"tag name ["<<data_entry.tag_name<<"] tag data ["<<data_entry.tag_data<<"] attr_data ["<<data_entry.attr_data<<"]\n";
         data.push_back(data_entry);

@@ -9,13 +9,13 @@
 using std::cout;
 using std::endl;
 
-#define CRAWL_LOOPS 10
+#define CRAWL_LOOPS 2
 
 int main(void)
 {
     //create parser config
-    std::vector<struct parse_param_s> parse_param;
-    struct parse_param_s param;
+    std::vector<struct tagdb_s> parse_param;
+    struct tagdb_s param;
 
     param.tag_type = url;
     param.xpath = "//a[@href]";

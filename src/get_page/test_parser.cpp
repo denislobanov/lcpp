@@ -41,11 +41,11 @@ int main(void)
 
     //create parser
     cout<<"initialising parser"<<endl;
-    parser test_parser("http://www.xmlsoft.org/", parse_param);
+    parser test_parser("http://www.xmlsoft.org/");
 
     cout<<"parsing"<<endl;
     //try catch block here
-    test_parser.parse();
+    test_parser.parse(parse_param);
 
     //process data
     cout<<"processing data"<<endl;

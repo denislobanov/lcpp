@@ -30,7 +30,7 @@ struct data_node_s {
 class parser
 {
     public:
-    parser(Glib::ustring url);
+    parser(std::string url);
     ~parser(void);
 
     //walks the document tree, parsing based on configuration

@@ -31,13 +31,13 @@ enum worker_intruction {
  * configuration sent to worker
  */
 enum tag_type_e {
+    invalid = 0,
     url,
     title,
     description,
     meta,
     email,
-    image,
-    other
+    image
 };
 
 struct tagdb_s {

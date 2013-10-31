@@ -6,7 +6,6 @@
 #include <unordered_map>
 #include <mutex>
 #include <chrono>
-#include <glibmm/ustring.h>
 
 #include "page_data.hpp"
 #include "robots_txt.hpp"
@@ -61,19 +60,19 @@ class cache
      * url is hashed and a page_data_s retrieved.
      * returns true if a page was found in cache
      */
-    bool get_page_data(struct page_data_s** page_data, Glib::ustring& url);
+    bool get_page_data(struct page_data_s** page_data, std::string& url);
 
     /**
      * page is potentially cached, depending on criteria and sent to the db
      * returns true if a page makes it to cache
      */
-    bool put_page_data(struct page_data_s* page_data, Glib::ustring& url);
+    bool put_page_data(struct page_data_s* page_data, std::string& url);
 
     /**
      * same API for robots_txt as page_data_s
      */
-    bool get_robots_txt(robots_txt** robots, Glib::ustring& url);
-    bool put_robots_txt(robots_txt* robots, Glib::ustring& url);
+    bool get_robots_txt(robots_txt** robots, std::string& url);
+    bool put_robots_txt(robots_txt* robots, std::string& url);
 
     private:
     //tune in the future to specify minimum # of initial buckets

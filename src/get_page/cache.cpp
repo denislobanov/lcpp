@@ -3,7 +3,6 @@
 #include <unordered_map>
 #include <mutex>
 #include <chrono>
-#include <glibmm/ustring.h>
 
 #include "cache.hpp"
 #include "database.hpp"
@@ -54,7 +53,7 @@ void cache::update_timestamp(data_map_t& dm, access_map_t& am, std::string url, 
     am.insert(std::pair<std::chrono::steady_clock::time_point, std::string>(new_time, url));
 }
 
-bool cache::get_page_data(struct page_data_s** page_data, Glib::ustring& url)
+bool cache::get_page_data(struct page_data_s** page_data, std::string& url)
 {
     bool in_cache = false;
 
@@ -63,7 +62,7 @@ bool cache::get_page_data(struct page_data_s** page_data, Glib::ustring& url)
 
     try {
         *page_data = page_cache.at(url).page;
-        update_timestamp(page_cache, page_access, url.raw(), std::chrono::steady_clock::now());
+        update_timestamp(page_cache, page_access, url, std::chrono::steady_clock::now());
         in_cache = true;
 
         dbg<<"got page, desc: "<<(*page_data)->description<<std::endl;
@@ -75,7 +74,7 @@ bool cache::get_page_data(struct page_data_s** page_data, Glib::ustring& url)
     return in_cache;
 }
 
-bool cache::put_page_data(struct page_data_s* page_data, Glib::ustring& url)
+bool cache::put_page_data(struct page_data_s* page_data, std::string& url)
 {
     bool in_cache = true;
     std::chrono::steady_clock::time_point new_time = std::chrono::steady_clock::now();
@@ -83,7 +82,7 @@ bool cache::put_page_data(struct page_data_s* page_data, Glib::ustring& url)
     page_ctl.rw_mutex.lock();
     //entries already in cache get automatically updated
     try {
-        update_timestamp(page_cache, page_access, url.raw(), new_time);
+        update_timestamp(page_cache, page_access, url, new_time);
         dbg<<"page ["<<url<<"] already in cache, updating\n";
     } catch(const std::out_of_range& e) {
         access_map_t::iterator pos = page_access.end();
@@ -127,7 +126,7 @@ bool cache::put_page_data(struct page_data_s* page_data, Glib::ustring& url)
     return in_cache;
 }
 
-bool cache::get_robots_txt(robots_txt** robots, Glib::ustring& url)
+bool cache::get_robots_txt(robots_txt** robots, std::string& url)
 {
     bool in_cache = false;
     //both getting and putting entries in cache have to be atomic
@@ -135,7 +134,7 @@ bool cache::get_robots_txt(robots_txt** robots, Glib::ustring& url)
 
     try {
         *robots = robots_cache.at(url).robots;
-        update_timestamp(robots_cache, robots_access, url.raw(), std::chrono::steady_clock::now());
+        update_timestamp(robots_cache, robots_access, url, std::chrono::steady_clock::now());
         in_cache = true;
 
         dbg<<"got robots\n";
@@ -147,14 +146,14 @@ bool cache::get_robots_txt(robots_txt** robots, Glib::ustring& url)
     return in_cache;
 }
 
-bool cache::put_robots_txt(robots_txt* robots, Glib::ustring& url)
+bool cache::put_robots_txt(robots_txt* robots, std::string& url)
 {
     std::chrono::steady_clock::time_point new_time = std::chrono::steady_clock::now();
 
     robots_ctl.rw_mutex.lock();
     //entries already in cache get automatically updated
     try {
-        update_timestamp(robots_cache, robots_access, url.raw(), new_time);
+        update_timestamp(robots_cache, robots_access, url, new_time);
         dbg<<"robots_txt ["<<url<<"] already in cache, updating\n";
     } catch(const std::out_of_range& e) {
         //~ access_map_t::iterator pos = page_access.begin();

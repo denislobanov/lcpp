@@ -17,7 +17,7 @@ struct page_data_s {
 
     //hause keeping
     std::mutex access_lock; //only one thread may access at a time, managed by cache class
-    Glib::ustring url; //used by cache class
+    std::string url; //used by cache class
 };
 
 /**
@@ -25,7 +25,7 @@ struct page_data_s {
  */
 struct queue_node_s {
     unsigned int credit;    //cash given to link from referring page
-    Glib::ustring url;
+    std::string url;
 };
 
 #endif
