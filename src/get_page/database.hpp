@@ -3,7 +3,6 @@
 
 #include <iostream>
 #include <functional>
-#include <glibmm/ustring.h>
 
 #include "page_data.hpp"
 #include "robots_txt.hpp"

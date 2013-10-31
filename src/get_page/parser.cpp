@@ -10,7 +10,7 @@
 #include "ipc_common.hpp"
 
 //Local defines
-#define DEBUG 5
+#define DEBUG 0
 
 #if (defined(DEBUG))&&(DEBUG > 2)
 #include <fstream>
@@ -28,7 +28,7 @@
     #define dbg_2 0 && std::cout
 #endif
 
-parser::parser(std::string url)
+parser::parser(Glib::ustring url)
 {
     doc_url = url;
 
@@ -62,6 +62,7 @@ void parser::save_nodes(struct tagdb_s& param)
 
         //attr_data
         if(!param.attr.empty()) {
+            dbg_2<<"saving attr ["<<param.attr<<"] data\n";
             tmp = xmlGetProp(node_set->nodeTab[i], reinterpret_cast<const xmlChar*>(param.attr.c_str()));
             data_entry.attr_data = reinterpret_cast<const char *>(tmp);
             xmlFree(tmp);

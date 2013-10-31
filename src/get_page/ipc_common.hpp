@@ -31,7 +31,7 @@ enum worker_intruction {
  * configuration sent to worker
  */
 enum tag_type_e {
-    invalid = 0,
+    invalid,
     url,
     title,
     description,
@@ -41,11 +41,10 @@ enum tag_type_e {
 };
 
 struct tagdb_s {
-    tag_type_e tag_type;
+    tag_type_e tag_type;    //meta
 
-    Glib::ustring tag;                    //tag to match
-    Glib::ustring attr;                   //match tags with a certain attribute only
-    Glib::ustring xpath;                  //xpath to match node
+    Glib::ustring xpath;    //xpath to match node
+    Glib::ustring attr;     //needed to extract attr_data from libxml2
 };
 
 struct worker_config {

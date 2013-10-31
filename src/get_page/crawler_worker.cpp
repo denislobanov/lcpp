@@ -16,7 +16,7 @@
 #include "memory_mgr.hpp"
 
 //Local defines
-#define DEBUG 4
+#define DEBUG 1
 #define SEED_URL "http://xmlsoft.org"
 #define SEED_CREDIT 2048
 
@@ -121,25 +121,25 @@ void crawler_worker::dev_loop(int i) throw(std::underflow_error)
                 parser single_parser(work_item.url);
                 single_parser.parse(config.parse_param);
                 if(!single_parser.data.empty()) {
-                    //clear existing meta
+                    //replaced by that returned from the crawl
                     page->meta.clear();
                     //process data, calculating page ranking
                     unsigned int linked_pages = 0;
 
                     for(auto& d: single_parser.data) {
+                        dbg_2<<"tag name ["<<d.tag_name<<"] tag data ["<<d.tag_data<<"] attr_data ["<<d.attr_data<<"]\n";
+                        
                         switch(d.tag_type) {
                         case url:
-                            dbg<<"found a url type tag, processing..\n";
-                            if(sanitize_url_tag(d)) {
+                            if(sanitize_url_tag(d, work_item.url)) {
                                 ++linked_pages;
                                 dbg_2<<"found link ["<<d.attr_data<<"]\n";
                             }
-                            dbg<<"done\n";
                             break;
 
                         case meta:
                             page->meta.push_back(d.tag_data);
-                            dbg_2<<"found meta\n";
+                            dbg<<"found meta ["<<d.tag_data<<"]\n";
                             break;
 
                         case title:
@@ -206,40 +206,35 @@ void crawler_worker::main_loop(void)
  */
 
 
-bool crawler_worker::sanitize_url_tag(struct data_node_s& t)
+bool crawler_worker::sanitize_url_tag(struct data_node_s& d, std::string root_url)
 {
     bool ret = true;
 
-    if(t.tag_name.compare("a") == 0) {
-        //attr name is not saved, so cannot check
-
-        //FIXME: proper https support
-        if(t.attr_data.substr(0, 5).compare("https") == 0) {
-            dbg_1<<"removing ssl scheme from ["<<t.attr_data<<"]\n";
-            t.attr_data.erase(4, 1);
-            dbg_2<<"now ["<<t.attr_data<<"]\n";
-
+    if(d.tag_name.compare("a") == 0) {
+        //<a href="..."> so attr_data should always contain url
+        if(!d.attr_data.empty()) {
+            if(d.attr_data.substr(0, 4).compare("http") == 0) {
+                //FIXME: proper https support
+                if(d.attr_data.substr(0, 5).compare("https") == 0) {
+                    dbg_1<<"removing ssl scheme from ["<<d.attr_data<<"]\n";
+                    d.attr_data.erase(4, 1);
+                    dbg_2<<"now ["<<d.attr_data<<"]\n";
+                }
+            } else {
+                dbg_1<<"trying to correct url ["<<d.attr_data<<"]\n";
+                d.attr_data.insert(std::string::size_type(), root_url);
+                dbg_1<<"new url ["<<d.attr_data<<"]\n";
+            }
+        } else {
+            dbg<<"tag ["<<d.tag_name<<"] is empty, discarding\n";
+            d.tag_type = invalid;
+            ret = false;
         }
-        //~ else if(t.attr_data.substr(0, 4).compare("http") != 0) {
-            //~ dbg<<"not a valid url ["<<t.attr_data<<"] dropping\n";
-            //~ ret = false;
-//~
-        //~ }
+    } else {
+        dbg<<"invalid tag name for url ["<<d.tag_name<<"]\n";
+        d.tag_type = invalid;
+        ret = false;
+    }
 
-    } else {
-        dbg<<"not a valid url ["<<t.attr_data<<"]\n";
-        t.tag_type = invalid;
-        ret = false;
-    }
-#if 0
-    } else {
-        //fix
-        //~ dbg_2<<"url ["<<d.attr_data<<"] is invalid, attempting to fix\n";
-        //~ d.attr_data.insert(std::string::size_type(), work_item.url);
-        //~ dbg_2<<"new url ["<<d.attr_data<<"]\n";
-        dbg_2<<"url ["<<t.attr_data<<"] can be fixed\n";
-        ret = false;
-    }
-#endif
     return ret;
 }

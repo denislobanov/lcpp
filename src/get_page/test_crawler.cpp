@@ -19,14 +19,17 @@ int main(void)
 
     param.tag_type = url;
     param.xpath = "//a[@href]";
+    param.attr = "href";
     parse_param.push_back(param);
 
     param.tag_type = meta;
-    param.xpath = "//img[@src]";
+    param.xpath = "//p";
+    param.attr = "";
     parse_param.push_back(param);
 
     param.tag_type = title;
-    param.tag = "//title";
+    param.xpath = "//title";
+    param.attr = "";
     parse_param.push_back(param);
 
     cout<<"creating crawler_worker"<<endl;

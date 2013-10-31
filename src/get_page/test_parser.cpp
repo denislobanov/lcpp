@@ -29,10 +29,12 @@ int main(void)
 
     param.tag_type = url;
     param.xpath = "//a[@href]";
+    param.attr = "href";
     parse_param.push_back(param);
 
-    param.tag_type = image;
+    param.tag_type = meta;
     param.xpath = "//img[@src]";
+    param.attr = "src";
     parse_param.push_back(param);
 
     param.tag_type = title;
