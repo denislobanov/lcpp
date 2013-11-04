@@ -128,7 +128,7 @@ void crawler_worker::dev_loop(int i) throw(std::underflow_error)
 
                     for(auto& d: single_parser.data) {
                         dbg_2<<"tag name ["<<d.tag_name<<"] tag data ["<<d.tag_data<<"] attr_data ["<<d.attr_data<<"]\n";
-                        
+
                         switch(d.tag_type) {
                         case url:
                             if(sanitize_url_tag(d, work_item.url)) {
@@ -138,8 +138,10 @@ void crawler_worker::dev_loop(int i) throw(std::underflow_error)
                             break;
 
                         case meta:
-                            page->meta.push_back(d.tag_data);
-                            dbg<<"found meta ["<<d.tag_data<<"]\n";
+                            if(sanitize_meta_tag(d)) {
+                                page->meta.push_back(d.tag_data);
+                                dbg<<"found meta ["<<d.tag_data<<"]\n";
+                            }
                             break;
 
                         case title:
@@ -237,4 +239,15 @@ bool crawler_worker::sanitize_url_tag(struct data_node_s& d, std::string root_ur
     }
 
     return ret;
+}
+
+bool crawler_worker::sanitize_meta_tag(struct data_node_s& d)
+{
+    if(d.tag_data.empty())
+        return false;
+
+    else
+
+
+    return true;
 }

@@ -33,12 +33,13 @@ int main(void)
     parse_param.push_back(param);
 
     param.tag_type = meta;
-    param.xpath = "//img[@src]";
-    param.attr = "src";
+    param.xpath = "//p";
+    param.attr = "";
     parse_param.push_back(param);
 
     param.tag_type = title;
-    param.tag = "//title";
+    param.xpath = "//title";
+    param.attr = "";
     parse_param.push_back(param);
 
     //create parser
