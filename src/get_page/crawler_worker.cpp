@@ -5,7 +5,6 @@
 #include <ctime>
 #include <unistd.h>         //sleep()
 #include <glibmm/ustring.h> //utf-8 strings
-#include <algorithm>
 
 #include "crawler_worker.hpp"
 #include "parser.hpp"
@@ -243,16 +242,41 @@ bool crawler_worker::sanitize_url_tag(struct data_node_s& d, std::string root_ur
 
 bool crawler_worker::sanitize_meta_tag(struct data_node_s& d)
 {
-    if(d.tag_data.empty()) {
-        return false;
+    bool ret = false;
 
-    } else {
+    if(!d.tag_data.empty()) {
         dbg<<"sanitizing meta data, original string ["<<d.tag_data<<"]\n";
+#if 0
         std::string tmp = d.tag_data.raw();
-        tmp.erase(std::remove_if(tmp.begin(), tmp.end(), ::isspace));
+        tmp.erase(std::remove_if(tmp.begin(), tmp.end(), g_unichar_isspace));
+#else
+        Glib::ustring::size_type pos = 0;
+        Glib::ustring tmp;
 
+        //manually check for whitespace as remove_if ::isspace and g_unichar_isspace fail to
+        while(pos < d.tag_data.length()) {
+            switch(d.tag_data[pos]) {
+            case ' ':
+            case '\n':
+            case '\t':
+            case '\r':
+            case '\f':
+                break;
+
+            default:
+                tmp += d.tag_data[pos];
+                break;
+            }
+            ++pos;
+        }
+#endif
         d.tag_data = tmp;
         dbg<<"new string ["<<d.tag_data<<"]\n";
+
+        //we need a second check here in case string was enierly whitespace
+        if(!d.tag_data.empty())
+            ret = true;
     }
-    return true;
+
+    return ret;
 }
