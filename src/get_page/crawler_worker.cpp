@@ -5,6 +5,7 @@
 #include <ctime>
 #include <unistd.h>         //sleep()
 #include <glibmm/ustring.h> //utf-8 strings
+#include <algorithm>
 
 #include "crawler_worker.hpp"
 #include "parser.hpp"
@@ -215,17 +216,16 @@ bool crawler_worker::sanitize_url_tag(struct data_node_s& d, std::string root_ur
     if(d.tag_name.compare("a") == 0) {
         //<a href="..."> so attr_data should always contain url
         if(!d.attr_data.empty()) {
-            if(d.attr_data.substr(0, 4).compare("http") == 0) {
-                //FIXME: proper https support
-                if(d.attr_data.substr(0, 5).compare("https") == 0) {
-                    dbg_1<<"removing ssl scheme from ["<<d.attr_data<<"]\n";
-                    d.attr_data.erase(4, 1);
-                    dbg_2<<"now ["<<d.attr_data<<"]\n";
-                }
-            } else {
+            if(d.attr_data.substr(0, 4).compare("http") != 0) {
                 dbg_1<<"trying to correct url ["<<d.attr_data<<"]\n";
                 d.attr_data.insert(std::string::size_type(), root_url);
                 dbg_1<<"new url ["<<d.attr_data<<"]\n";
+
+            //FIXME: proper https support
+            } else if(d.attr_data.substr(0, 5).compare("https") == 0) {
+                dbg_1<<"removing ssl scheme from ["<<d.attr_data<<"]\n";
+                d.attr_data.erase(4, 1);
+                dbg_2<<"now ["<<d.attr_data<<"]\n";
             }
         } else {
             dbg<<"tag ["<<d.tag_name<<"] is empty, discarding\n";
@@ -243,11 +243,16 @@ bool crawler_worker::sanitize_url_tag(struct data_node_s& d, std::string root_ur
 
 bool crawler_worker::sanitize_meta_tag(struct data_node_s& d)
 {
-    if(d.tag_data.empty())
+    if(d.tag_data.empty()) {
         return false;
 
-    else
+    } else {
+        dbg<<"sanitizing meta data, original string ["<<d.tag_data<<"]\n";
+        std::string tmp = d.tag_data.raw();
+        tmp.erase(std::remove_if(tmp.begin(), tmp.end(), ::isspace));
 
-
+        d.tag_data = tmp;
+        dbg<<"new string ["<<d.tag_data<<"]\n";
+    }
     return true;
 }
