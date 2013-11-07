@@ -5,6 +5,7 @@
 #include <ctime>
 #include <unistd.h>         //sleep()
 #include <glibmm/ustring.h> //utf-8 strings
+#include <glibmm/convert.h> //Glib::ConvertError
 
 #include "crawler_worker.hpp"
 #include "parser.hpp"
@@ -21,14 +22,14 @@
 #define SEED_CREDIT 2048
 
 #if defined(DEBUG)
-    #define dbg std::cout<<__FILE__<<"("<<__LINE__<<"): "
+    #define dbg try{ std::cout<<__FILE__<<"("<<__LINE__<<"): " }catch(std::exception& e){std::cerr<<"Exception whilst in dbg  --  "<<e.what<<std::endl;}
     #if DEBUG > 1
-        #define dbg_1 std::cout<<__FILE__<<"("<<__LINE__<<"): "
+        #define dbg_1 try{ std::cout<<__FILE__<<"("<<__LINE__<<"): " }catch(std::exception& e){std::cerr<<"Exception whilst in dbg_1  --  "<<e.what<<std::endl;}
     #else
-        #define dbg_1 0 && std::cout
+        #define dbg_2 0 && std::cout
     #endif
     #if DEBUG > 2
-        #define dbg_2 std::cout<<__FILE__<<"("<<__LINE__<<"): "
+        #define dbg_1 try{ std::cout<<__FILE__<<"("<<__LINE__<<"): " }catch(std::exception& e){std::cerr<<"Exception whilst in dbg_2  --  "<<e.what<<std::endl;}
     #else
         #define dbg_2 0 && std::cout
     #endif
@@ -245,7 +246,7 @@ bool crawler_worker::sanitize_meta_tag(struct data_node_s& d)
     bool ret = false;
 
     if(!d.tag_data.empty()) {
-        dbg<<"sanitizing meta data, original string ["<<d.tag_data<<"]\n";
+        dbg_2<<"sanitizing meta data, original string ["<<d.tag_data<<"]\n";
 #if 0
         std::string tmp = d.tag_data.raw();
         tmp.erase(std::remove_if(tmp.begin(), tmp.end(), g_unichar_isspace));
@@ -271,7 +272,7 @@ bool crawler_worker::sanitize_meta_tag(struct data_node_s& d)
         }
 #endif
         d.tag_data = tmp;
-        dbg<<"new string ["<<d.tag_data<<"]\n";
+        dbg_2<<"new string ["<<d.tag_data<<"]\n";
 
         //we need a second check here in case string was enierly whitespace
         if(!d.tag_data.empty())

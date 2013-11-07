@@ -3,6 +3,7 @@
 #include <unordered_map>
 #include <mutex>
 #include <chrono>
+#include <glibmm/convert.h> //Glib::ConvertError
 
 #include "cache.hpp"
 #include "database.hpp"
@@ -13,15 +14,23 @@
 #define DEBUG 2
 
 #if defined(DEBUG)
-    #define dbg std::cout<<__FILE__<<"("<<__LINE__<<"): "
+    #define dbg try{\
+        std::cout<<__FILE__<<"("<<__LINE__<<"): "\
+        } catch(std::exception& e) {\
+            std::cerr<<"Exception whilst in dbg  --  "<<e.what<<std::endl;\
+        }
     #if DEBUG > 1
-        #define dbg_1 std::cout<<__FILE__<<"("<<__LINE__<<"): "
+        #define dbg_1 try{\
+        std::cout<<__FILE__<<"("<<__LINE__<<"): "\
+        } catch(std::exception& e) {\
+            std::cerr<<"Exception whilst in dbg_1  --  "<<e.what<<std::endl;\
+        }
     #else
-        #define dbg_1 0 && std::cout
+        #define dbg_2 0 && std::cout
     #endif
 #else
     #define dbg 0 && std::cout
-    #define dbg_1 0 && std::cout
+    #define dbg_2 0 && std::cout
 #endif
 
 cache::cache(void)

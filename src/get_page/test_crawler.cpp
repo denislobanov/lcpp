@@ -9,7 +9,7 @@
 using std::cout;
 using std::endl;
 
-#define CRAWL_LOOPS 2
+#define CRAWL_LOOPS 10000
 
 int main(void)
 {

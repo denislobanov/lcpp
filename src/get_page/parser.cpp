@@ -5,21 +5,30 @@
 #include <libxml/xpath.h>
 #include <glibmm/ustring.h>
 #include <glib.h>
+#include <glibmm/convert.h> //Glib::ConvertError
 
 #include "parser.hpp"
 #include "ipc_common.hpp"
 
 //Local defines
-#define DEBUG 0
+#define DEBUG 2
 
 #if (defined(DEBUG))&&(DEBUG > 2)
 #include <fstream>
 #endif
 
 #if defined(DEBUG)
-    #define dbg std::cout<<__FILE__<<"("<<__LINE__<<"): "
+    #define dbg try{\
+        std::cout<<__FILE__<<"("<<__LINE__<<"): "\
+        } catch(std::exception& e) {\
+            std::cerr<<"Exception whilst in dbg  --  "<<e.what<<std::endl;\
+        }
     #if DEBUG > 1
-        #define dbg_2 std::cout<<__FILE__<<"("<<__LINE__<<"): "
+        #define dbg_2 try{\
+        std::cout<<__FILE__<<"("<<__LINE__<<"): "\
+        } catch(std::exception& e) {\
+            std::cerr<<"Exception whilst in dbg_2  --  "<<e.what<<std::endl;\
+        }
     #else
         #define dbg_2 0 && std::cout
     #endif
