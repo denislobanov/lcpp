@@ -6,6 +6,7 @@
 #include <unistd.h>         //sleep()
 #include <glibmm/ustring.h> //utf-8 strings
 #include <glibmm/convert.h> //Glib::ConvertError
+#include <glib.h>
 
 #include "crawler_worker.hpp"
 #include "parser.hpp"
@@ -17,19 +18,19 @@
 #include "memory_mgr.hpp"
 
 //Local defines
-#define DEBUG 1
+#define DEBUG 4
 #define SEED_URL "http://xmlsoft.org"
 #define SEED_CREDIT 2048
 
 #if defined(DEBUG)
-    #define dbg try{ std::cout<<__FILE__<<"("<<__LINE__<<"): " }catch(std::exception& e){std::cerr<<"Exception whilst in dbg  --  "<<e.what<<std::endl;}
+    #define dbg std::cout<<__FILE__<<"("<<__LINE__<<"): "
     #if DEBUG > 1
-        #define dbg_1 try{ std::cout<<__FILE__<<"("<<__LINE__<<"): " }catch(std::exception& e){std::cerr<<"Exception whilst in dbg_1  --  "<<e.what<<std::endl;}
+        #define dbg_1 std::cout<<__FILE__<<"("<<__LINE__<<"): "
     #else
-        #define dbg_2 0 && std::cout
+        #define dbg_1 0 && std::cout
     #endif
     #if DEBUG > 2
-        #define dbg_1 try{ std::cout<<__FILE__<<"("<<__LINE__<<"): " }catch(std::exception& e){std::cerr<<"Exception whilst in dbg_2  --  "<<e.what<<std::endl;}
+        #define dbg_2 std::cout<<__FILE__<<"("<<__LINE__<<"): "
     #else
         #define dbg_2 0 && std::cout
     #endif
@@ -47,6 +48,29 @@ crawler_worker::crawler_worker(std::vector<struct tagdb_s>& parse_param)
     config.db_path = "./test_db";
     config.user_agent = "lcpp test";
     config.parse_param = parse_param;
+
+    config.bad_char.push_back("\"");
+    config.bad_char.push_back("\'");
+    config.bad_char.push_back(",");
+    config.bad_char.push_back(".");
+    config.bad_char.push_back("!");
+    config.bad_char.push_back("£");
+    config.bad_char.push_back("$");
+    config.bad_char.push_back("%");
+    config.bad_char.push_back("^");
+    config.bad_char.push_back("&");
+    config.bad_char.push_back("*");
+    config.bad_char.push_back("(");
+    config.bad_char.push_back(")");
+    config.bad_char.push_back("+");
+    config.bad_char.push_back("#");
+    config.bad_char.push_back("~");
+    config.bad_char.push_back(";");
+    config.bad_char.push_back(":");
+    config.bad_char.push_back("\\");
+    config.bad_char.push_back("/");
+    config.bad_char.push_back("]");
+    config.bad_char.push_back("[");
 
     netio_obj = new netio(config.user_agent);
     mem_mgr = new memory_mgr(config.db_path, config.user_agent);
@@ -127,36 +151,42 @@ void crawler_worker::dev_loop(int i) throw(std::underflow_error)
                     //process data, calculating page ranking
                     unsigned int linked_pages = 0;
 
-                    for(auto& d: single_parser.data) {
-                        dbg_2<<"tag name ["<<d.tag_name<<"] tag data ["<<d.tag_data<<"] attr_data ["<<d.attr_data<<"]\n";
+                    try {
+                        for(auto& d: single_parser.data) {
+                            dbg_2<<"tag name ["<<d.tag_name<<"] tag data ["<<d.tag_data<<"] attr_data ["<<d.attr_data<<"]\n";
 
-                        switch(d.tag_type) {
-                        case url:
-                            if(sanitize_url_tag(d, work_item.url)) {
-                                ++linked_pages;
-                                dbg_2<<"found link ["<<d.attr_data<<"]\n";
+                            switch(d.tag_type) {
+                            case url:
+                                if(sanitize_url_tag(d, work_item.url)) {
+                                    ++linked_pages;
+                                    dbg_2<<"found link ["<<d.attr_data<<"]\n";
+                                }
+                                break;
+
+                            case meta:
+                            {
+                                unsigned int i;
+                                if((i = tokenize_meta_tag(page, d.tag_data)) > 0) {
+                                    dbg<<"found meta, "<<i<<" keywords extracted\n";
+                                }
+                                break;
                             }
-                            break;
 
-                        case meta:
-                            if(sanitize_meta_tag(d)) {
-                                page->meta.push_back(d.tag_data);
-                                dbg<<"found meta ["<<d.tag_data<<"]\n";
+                            case title:
+                                if(!d.tag_data.empty()) {
+                                    page->title = d.tag_data;
+                                    dbg_2<<"found title ["<<d.tag_data<<"]\n";
+                                }
+                                break;
+
+                            default:
+                                //for now, do nothing
+                                dbg<<"unknown tag ["<<d.tag_name<<"]\n";
+                                break;
                             }
-                            break;
-
-                        case title:
-                            if(!d.tag_data.empty()) {
-                                page->title = d.tag_data;
-                                dbg_2<<"found title ["<<d.tag_data<<"]\n";
-                            }
-                            break;
-
-                        default:
-                            //for now, do nothing
-                            dbg<<"unknown tag ["<<d.tag_name<<"]\n";
-                            break;
                         }
+                    } catch(Glib::ConvertError& e) {
+                        std::cerr<<"got a convert error  -- "<<e.what();
                     }
 
                     //FIXME: tax page here
@@ -241,43 +271,73 @@ bool crawler_worker::sanitize_url_tag(struct data_node_s& d, std::string root_ur
     return ret;
 }
 
-bool crawler_worker::sanitize_meta_tag(struct data_node_s& d)
+bool crawler_worker::is_whitespace(Glib::ustring::value_type c)
 {
-    bool ret = false;
+    switch(c) {
+    case ' ':
+    case '\n':
+    case '\t':
+    case '\r':
+    case '\f':
+        return true;
 
-    if(!d.tag_data.empty()) {
-        dbg_2<<"sanitizing meta data, original string ["<<d.tag_data<<"]\n";
-#if 0
-        std::string tmp = d.tag_data.raw();
-        tmp.erase(std::remove_if(tmp.begin(), tmp.end(), g_unichar_isspace));
-#else
-        Glib::ustring::size_type pos = 0;
-        Glib::ustring tmp;
+    default:
+        return false;
+    }
 
-        //manually check for whitespace as remove_if ::isspace and g_unichar_isspace fail to
-        while(pos < d.tag_data.length()) {
-            switch(d.tag_data[pos]) {
-            case ' ':
-            case '\n':
-            case '\t':
-            case '\r':
-            case '\f':
-                break;
+    std::cerr<<"default ignored in switch!! returning false.\n";
+    return false;
+}
 
-            default:
-                tmp += d.tag_data[pos];
-                break;
+//tokenizes @data and stores each keyword as a seperate meta data entry,
+//does not remove duplicates.
+unsigned int crawler_worker::tokenize_meta_tag(struct page_data_s* page, Glib::ustring& data)
+{
+    unsigned int ret = 0;
+
+    if(!data.empty()) {
+        dbg_2<<"tokenizing meta data, original string ["<<data<<"]\n";
+
+        Glib::ustring::size_type start = 0, end = 0;
+
+        //we must iterate over the string chars manually as all types of
+        //whitespace are valid forms of deliminators
+        while(end < data.length()) {
+
+            //manually check for whitespace as remove_if ::isspace and g_unichar_isspace fail to
+            if(is_whitespace(data[end])) {
+                //dont store whitespace
+                if(end>start) {
+                    dbg<<"found token ["<<data.substr(start, end-start)<<"]\n";
+
+                    //escape string
+                    page->meta.push_back(::g_uri_escape_string(data.substr(start, end-start).c_str(), 0, true));
+                    ++ret;
+                }
+                start = end;
             }
-            ++pos;
+            ++end;
         }
-#endif
-        d.tag_data = tmp;
-        dbg_2<<"new string ["<<d.tag_data<<"]\n";
-
-        //we need a second check here in case string was enierly whitespace
-        if(!d.tag_data.empty())
-            ret = true;
     }
 
     return ret;
 }
+
+#if 0
+//removed all bad_char from string data
+void crawler_worker::sanitize(std::string& data, std::string bad_char)
+{
+    for(unsigned int i = 0; i < bad_char.length(); ++i)
+        data.erase(std::remove(data.begin(), data.end(), bad_char[i]), data.end());
+}
+
+Glib::ustring crawler_worker::sanitize_token(Glib::ustring t)
+{
+    Glib::ustring out = t;
+
+    for(auto& b: config.bad_char)
+        sanitize(out, b);
+
+    return out;
+}
+#endif

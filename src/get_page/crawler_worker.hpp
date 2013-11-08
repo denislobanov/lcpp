@@ -55,7 +55,8 @@ class crawler_worker
 
     size_t root_domain(std::string& url);
     bool sanitize_url_tag(struct data_node_s& d, std::string root_url);
-    bool sanitize_meta_tag(struct data_node_s& d);
+    unsigned int tokenize_meta_tag(struct page_data_s* page, Glib::ustring& data);
+    bool is_whitespace(Glib::ustring::value_type c);
 };
 
 #endif

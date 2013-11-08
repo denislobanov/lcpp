@@ -61,6 +61,9 @@ struct worker_config {
 
     //parser
     std::vector<struct tagdb_s> parse_param;
+
+    //development only. database client to perform true sanitation
+    std::vector<std::string> bad_char;
 };
 
 /**

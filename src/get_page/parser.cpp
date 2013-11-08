@@ -5,7 +5,7 @@
 #include <libxml/xpath.h>
 #include <glibmm/ustring.h>
 #include <glib.h>
-#include <glibmm/convert.h> //Glib::ConvertError
+#include <glibmm/convert.h>
 
 #include "parser.hpp"
 #include "ipc_common.hpp"
@@ -18,17 +18,9 @@
 #endif
 
 #if defined(DEBUG)
-    #define dbg try{\
-        std::cout<<__FILE__<<"("<<__LINE__<<"): "\
-        } catch(std::exception& e) {\
-            std::cerr<<"Exception whilst in dbg  --  "<<e.what<<std::endl;\
-        }
+    #define dbg std::cout<<__FILE__<<"("<<__LINE__<<"): "
     #if DEBUG > 1
-        #define dbg_2 try{\
-        std::cout<<__FILE__<<"("<<__LINE__<<"): "\
-        } catch(std::exception& e) {\
-            std::cerr<<"Exception whilst in dbg_2  --  "<<e.what<<std::endl;\
-        }
+        #define dbg_2 std::cout<<__FILE__<<"("<<__LINE__<<"): "
     #else
         #define dbg_2 0 && std::cout
     #endif
@@ -80,7 +72,11 @@ void parser::save_nodes(struct tagdb_s& param)
         //(expected)tag_type
         data_entry.tag_type = param.tag_type;
 
-        dbg_2<<"tag name ["<<data_entry.tag_name<<"] tag data ["<<data_entry.tag_data<<"] attr_data ["<<data_entry.attr_data<<"]\n";
+        try {
+            dbg_2<<"tag name ["<<data_entry.tag_name<<"] tag data ["<<data_entry.tag_data<<"] attr_data ["<<data_entry.attr_data<<"]\n";
+        } catch(Glib::ConvertError& e) {
+            std::cerr<<"shit yo, get a better error message. also: "<<e.what();
+        }
         data.push_back(data_entry);
     }
 }

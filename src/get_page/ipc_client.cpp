@@ -7,7 +7,7 @@
 #include "ipc_client.hpp"
 
 //Local defines
-#define DEBUG 1
+//~ #define DEBUG 1
 
 #if defined(DEBUG)
     #define dbg std::cout<<__FILE__<<"("<<__LINE__<<"): "
@@ -70,7 +70,7 @@ struct queue_node_s ipc_client::get_item(void) throw(std::underflow_error)
 
 struct worker_config ipc_client::get_config(void) throw(std::system_error)
 {
-    struct worker_config config = {0};    
+    struct worker_config config = {0};
     std::cerr<<"not yet implemented\n";
 
     return config;
