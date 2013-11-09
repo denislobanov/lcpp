@@ -147,10 +147,12 @@ void crawler_worker::crawl(queue_node_s& work_item, struct page_data_s* page, ro
         //FIXME: tax page here
         dbg<<"page->rank "<<page->rank<<" linked_pages "<<linked_pages<<std::endl;
         unsigned int new_credit = 0;
-        if(page->rank > 0)
+        if(page->rank > 0 && linked_pages > 0)
             new_credit = page->rank/linked_pages;
 
         page->rank = 0;
+        ++page->crawl_count;
+        page->last_crawl = std::chrono::system_clock::now();
         dbg_1<<"linked_pages "<<linked_pages<<" new_credit "<<new_credit<<std::endl;
 
         //put new urls on IPC work queue
@@ -321,22 +323,3 @@ unsigned int crawler_worker::tokenize_meta_tag(struct page_data_s* page, Glib::u
 
     return ret;
 }
-
-#if 0
-//removed all bad_char from string data
-void crawler_worker::sanitize(std::string& data, std::string bad_char)
-{
-    for(unsigned int i = 0; i < bad_char.length(); ++i)
-        data.erase(std::remove(data.begin(), data.end(), bad_char[i]), data.end());
-}
-
-Glib::ustring crawler_worker::sanitize_token(Glib::ustring t)
-{
-    Glib::ustring out = t;
-
-    for(auto& b: config.bad_char)
-        sanitize(out, b);
-
-    return out;
-}
-#endif
