@@ -49,6 +49,7 @@ struct tagdb_s {
 
 struct worker_config {
     std::string user_agent;
+    unsigned int day_max_crawls;
 
     //cache config
     unsigned int page_cache_max;
@@ -61,9 +62,6 @@ struct worker_config {
 
     //parser
     std::vector<struct tagdb_s> parse_param;
-
-    //development only. database client to perform true sanitation
-    std::vector<std::string> bad_char;
 };
 
 /**

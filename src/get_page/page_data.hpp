@@ -4,20 +4,26 @@
 #include <vector>
 #include <mutex>
 #include <glibmm/ustring.h>
+#include <chrono>
 
 
 /**
  * describes an entry to pass to caching/db mechanism
  */
 struct page_data_s {
+    //meta
     unsigned int rank;
+    unsigned int crawl_count;
+    std::chrono::system_clock::time_point last_crawl;
+    std::vector<std::string> out_links;
+
+    //descriptive
     Glib::ustring title;              //page title
     Glib::ustring description;        //short blob about page
     std::vector<Glib::ustring> meta;  //keywords associated with page
 
-    //hause keeping
+    //house keeping
     std::mutex access_lock; //only one thread may access at a time, managed by cache class
-    std::string url; //used by cache class
 };
 
 /**

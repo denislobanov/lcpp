@@ -13,6 +13,7 @@
 class netio;
 class memory_mgr;
 class ipc_client;
+class robots_txt;
 
 /**
  * Global, part of objects interface
@@ -57,6 +58,7 @@ class crawler_worker
     bool sanitize_url_tag(struct data_node_s& d, std::string root_url);
     unsigned int tokenize_meta_tag(struct page_data_s* page, Glib::ustring& data);
     bool is_whitespace(Glib::ustring::value_type c);
+    void crawl(queue_node_s& work_item, struct page_data_s* page, robots_txt* robots);
 };
 
 #endif

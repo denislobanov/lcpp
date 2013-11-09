@@ -6,7 +6,6 @@
 #include <unistd.h>         //sleep()
 #include <glibmm/ustring.h> //utf-8 strings
 #include <glibmm/convert.h> //Glib::ConvertError
-#include <glib.h>
 
 #include "crawler_worker.hpp"
 #include "parser.hpp"
@@ -47,30 +46,8 @@ crawler_worker::crawler_worker(std::vector<struct tagdb_s>& parse_param)
     status = READY;
     config.db_path = "./test_db";
     config.user_agent = "lcpp test";
+    config.day_max_crawls = 3;
     config.parse_param = parse_param;
-
-    config.bad_char.push_back("\"");
-    config.bad_char.push_back("\'");
-    config.bad_char.push_back(",");
-    config.bad_char.push_back(".");
-    config.bad_char.push_back("!");
-    config.bad_char.push_back("£");
-    config.bad_char.push_back("$");
-    config.bad_char.push_back("%");
-    config.bad_char.push_back("^");
-    config.bad_char.push_back("&");
-    config.bad_char.push_back("*");
-    config.bad_char.push_back("(");
-    config.bad_char.push_back(")");
-    config.bad_char.push_back("+");
-    config.bad_char.push_back("#");
-    config.bad_char.push_back("~");
-    config.bad_char.push_back(";");
-    config.bad_char.push_back(":");
-    config.bad_char.push_back("\\");
-    config.bad_char.push_back("/");
-    config.bad_char.push_back("]");
-    config.bad_char.push_back("[");
 
     netio_obj = new netio(config.user_agent);
     mem_mgr = new memory_mgr(config.db_path, config.user_agent);
@@ -104,6 +81,92 @@ size_t crawler_worker::root_domain(std::string& url)
     return url.find_first_of("/", 8);
 }
 
+void crawler_worker::crawl(queue_node_s& work_item, struct page_data_s* page, robots_txt* robots)
+{
+    //for dev just sleep. prod should put item back on work queue
+    while(std::difftime(std::time(0), robots->last_visit) < robots->crawl_delay) {
+        status = SLEEP;
+        sleep(robots->crawl_delay);
+        dbg<<"crawl delay not reached, sleeping for "<<robots->crawl_delay<<" seconds\n";
+    }
+    status = ACTIVE;
+    robots->last_visit = std::time(0);
+
+    //page rank housekeeping
+    page->rank += work_item.credit;
+
+    //parse page
+    parser single_parser(work_item.url);
+    single_parser.parse(config.parse_param);
+    if(!single_parser.data.empty()) {
+        //replaced by that returned from the crawl
+        page->meta.clear();
+        //process data, calculating page ranking
+        unsigned int linked_pages = 0;
+
+        try {
+            for(auto& d: single_parser.data) {
+                dbg_2<<"tag name ["<<d.tag_name<<"] tag data ["<<d.tag_data<<"] attr_data ["<<d.attr_data<<"]\n";
+
+                switch(d.tag_type) {
+                case url:
+                    if(sanitize_url_tag(d, work_item.url)) {
+                        ++linked_pages;
+                        dbg_2<<"found link ["<<d.attr_data<<"]\n";
+                    }
+                    break;
+
+                case meta:
+                {
+                    unsigned int i;
+                    if((i = tokenize_meta_tag(page, d.tag_data)) > 0) {
+                        dbg<<"found meta, "<<i<<" keywords extracted\n";
+                    }
+                    break;
+                }
+
+                case title:
+                    if(!d.tag_data.empty()) {
+                        page->title = d.tag_data;
+                        //FIXME: development only
+                        page->description = d.tag_data;
+                        dbg_2<<"found title ["<<d.tag_data<<"]\n";
+                    }
+                    break;
+
+                default:
+                    //for now, do nothing
+                    dbg<<"unknown tag ["<<d.tag_name<<"]\n";
+                    break;
+                }
+            }
+        } catch(Glib::ConvertError& e) {
+            std::cerr<<"got a convert error  -- "<<e.what();
+        }
+
+        //FIXME: tax page here
+        dbg<<"page->rank "<<page->rank<<" linked_pages "<<linked_pages<<std::endl;
+        unsigned int new_credit = 0;
+        if(page->rank > 0)
+            new_credit = page->rank/linked_pages;
+
+        page->rank = 0;
+        dbg_1<<"linked_pages "<<linked_pages<<" new_credit "<<new_credit<<std::endl;
+
+        //put new urls on IPC work queue
+        for(auto& d: single_parser.data) {
+            queue_node_s new_item;
+
+            if(d.tag_type == url) {
+                new_item.url = d.attr_data;
+                new_item.credit = new_credit;
+                ipc.send_item(new_item);
+                dbg_2<<"added ["<<new_item.url<<"] to queue\n";
+            }
+        }
+    }
+}
+
 void crawler_worker::dev_loop(int i) throw(std::underflow_error)
 {
     while(--i) {
@@ -129,82 +192,20 @@ void crawler_worker::dev_loop(int i) throw(std::underflow_error)
 
             //can we crawl this page?
             if(!robots->exclude(work_item.url)) {
-                dbg<<"can crawl page\n";
-                //for dev just sleep. prod should put item back on work queue
-                while(std::difftime(std::time(0), robots->last_visit) < robots->crawl_delay) {
-                    status = SLEEP;
-                    sleep(robots->crawl_delay);
-                    dbg<<"crawl delay not reached, sleeping for "<<robots->crawl_delay<<" seconds\n";
-                }
-                status = ACTIVE;
-                robots->last_visit = std::time(0);
+                if(page->crawl_count < config.day_max_crawls) {
+                    dbg<<"can crawl page\n";
+                    crawl(work_item, page, robots);
 
-                //page rank housekeeping
-                page->rank += work_item.credit;
+                } else {
+                    std::chrono::hours one_day(24);
+                    if(std::chrono::duration_cast<std::chrono::hours>
+                        (std::chrono::system_clock::now() - page->last_crawl) >= one_day) {
+                        dbg<<"can crawl papge - resetting page crawl_count\n";
+                        page->crawl_count = 0;
+                        crawl(work_item, page, robots);
 
-                //parse page
-                parser single_parser(work_item.url);
-                single_parser.parse(config.parse_param);
-                if(!single_parser.data.empty()) {
-                    //replaced by that returned from the crawl
-                    page->meta.clear();
-                    //process data, calculating page ranking
-                    unsigned int linked_pages = 0;
-
-                    try {
-                        for(auto& d: single_parser.data) {
-                            dbg_2<<"tag name ["<<d.tag_name<<"] tag data ["<<d.tag_data<<"] attr_data ["<<d.attr_data<<"]\n";
-
-                            switch(d.tag_type) {
-                            case url:
-                                if(sanitize_url_tag(d, work_item.url)) {
-                                    ++linked_pages;
-                                    dbg_2<<"found link ["<<d.attr_data<<"]\n";
-                                }
-                                break;
-
-                            case meta:
-                            {
-                                unsigned int i;
-                                if((i = tokenize_meta_tag(page, d.tag_data)) > 0) {
-                                    dbg<<"found meta, "<<i<<" keywords extracted\n";
-                                }
-                                break;
-                            }
-
-                            case title:
-                                if(!d.tag_data.empty()) {
-                                    page->title = d.tag_data;
-                                    dbg_2<<"found title ["<<d.tag_data<<"]\n";
-                                }
-                                break;
-
-                            default:
-                                //for now, do nothing
-                                dbg<<"unknown tag ["<<d.tag_name<<"]\n";
-                                break;
-                            }
-                        }
-                    } catch(Glib::ConvertError& e) {
-                        std::cerr<<"got a convert error  -- "<<e.what();
-                    }
-
-                    //FIXME: tax page here
-                    dbg<<"page->rank "<<page->rank<<" linked_pages "<<linked_pages<<std::endl;
-                    unsigned int new_credit = page->rank/linked_pages;
-                    page->rank = 0;
-                    dbg_1<<"linked_pages "<<linked_pages<<" new_credit "<<new_credit<<std::endl;
-
-                    //put new urls on IPC work queue
-                    for(auto& d: single_parser.data) {
-                        queue_node_s new_item;
-
-                        if(d.tag_type == url) {
-                            new_item.url = d.attr_data;
-                            new_item.credit = new_credit;
-                            ipc.send_item(new_item);
-                            dbg_2<<"added ["<<new_item.url<<"] to queue\n";
-                        }
+                    } else {
+                        dbg<<"page exceeded day_max_crawls, will not process\n";
                     }
                 }
             } else {
@@ -297,13 +298,11 @@ unsigned int crawler_worker::tokenize_meta_tag(struct page_data_s* page, Glib::u
 
     if(!data.empty()) {
         dbg_2<<"tokenizing meta data, original string ["<<data<<"]\n";
-
         Glib::ustring::size_type start = 0, end = 0;
 
         //we must iterate over the string chars manually as all types of
         //whitespace are valid forms of deliminators
         while(end < data.length()) {
-
             //manually check for whitespace as remove_if ::isspace and g_unichar_isspace fail to
             if(is_whitespace(data[end])) {
                 //dont store whitespace
@@ -311,10 +310,10 @@ unsigned int crawler_worker::tokenize_meta_tag(struct page_data_s* page, Glib::u
                     dbg<<"found token ["<<data.substr(start, end-start)<<"]\n";
 
                     //escape string
-                    page->meta.push_back(::g_uri_escape_string(data.substr(start, end-start).c_str(), 0, true));
+                    page->meta.push_back(data.substr(start, end-start));
                     ++ret;
                 }
-                start = end;
+                start = end+1; //dont save seperators
             }
             ++end;
         }
