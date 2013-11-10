@@ -25,7 +25,13 @@ ipc_client::ipc_client(void) {}
 
 ipc_client::~ipc_client(void) {}
 
-void ipc_client::send_item(struct queue_node_s& data) throw(std::system_error)
+ipc_client::ipc_client(struct ipc_config& config)
+{
+    cfg = config;
+}
+
+//dev only
+void ipc_client::send_item(struct queue_node_s& data)
 {
     queue_lock.lock();
     dev_queue.push(data);
@@ -34,21 +40,14 @@ void ipc_client::send_item(struct queue_node_s& data) throw(std::system_error)
     dbg<<"pushed data to queue [credit: "<<data.credit<<" url: "<<data.url<<"]\n";
 }
 
-void ipc_client::send_status(worker_status status) throw (std::system_error)
+/*
+bool ipc_client::send_item(struct queue_node_s& data) throw(std::system_error)
 {
-    std::cerr<<"not yet implemented\n";
+    //FIXME
+    throw std::underflow_error("not yet implemented");
+    return false;
 }
-
-void ipc_client::send_capabilities(struct capabilities& cap) throw(std::system_error)
-{
-    std::cerr<<"not yet implemented\n";
-}
-
-void ipc_client::send_config(struct worker_config& config) throw(std::system_error)
-{
-    std::cerr<<"not yet implemented\n";
-}
-
+*/
 struct queue_node_s ipc_client::get_item(void) throw(std::underflow_error)
 {
     struct queue_node_s data = {0};
@@ -68,17 +67,9 @@ struct queue_node_s ipc_client::get_item(void) throw(std::underflow_error)
     return data;
 }
 
-struct worker_config ipc_client::get_config(void) throw(std::system_error)
+worker_intruction ipc_client::sync(struct sync_data& data) throw(std::underflow_error)
 {
-    struct worker_config config = {0};
-    std::cerr<<"not yet implemented\n";
-
-    return config;
+    throw std::underflow_error("not yet implemented");
+    return NO_INST;
 }
 
-worker_intruction ipc_client::get_intstruction(void) throw(std::system_error)
-{
-    std::cerr<<"not yet implemented\n";
-
-    return START;
-}

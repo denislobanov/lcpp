@@ -17,7 +17,7 @@
 #include "memory_mgr.hpp"
 
 //Local defines
-#define DEBUG 4
+#define DEBUG 0
 #define SEED_URL "http://xmlsoft.org"
 #define SEED_CREDIT 2048
 
@@ -120,7 +120,7 @@ void crawler_worker::crawl(queue_node_s& work_item, struct page_data_s* page, ro
                 {
                     unsigned int i;
                     if((i = tokenize_meta_tag(page, d.tag_data)) > 0) {
-                        dbg<<"found meta, "<<i<<" keywords extracted\n";
+                        dbg_2<<"found meta, "<<i<<" keywords extracted\n";
                     }
                     break;
                 }
@@ -153,7 +153,7 @@ void crawler_worker::crawl(queue_node_s& work_item, struct page_data_s* page, ro
         page->rank = 0;
         ++page->crawl_count;
         page->last_crawl = std::chrono::system_clock::now();
-        dbg_1<<"linked_pages "<<linked_pages<<" new_credit "<<new_credit<<std::endl;
+        dbg<<" new_credit "<<new_credit<<std::endl;
 
         //put new urls on IPC work queue
         for(auto& d: single_parser.data) {
@@ -309,7 +309,7 @@ unsigned int crawler_worker::tokenize_meta_tag(struct page_data_s* page, Glib::u
             if(is_whitespace(data[end])) {
                 //dont store whitespace
                 if(end>start) {
-                    dbg<<"found token ["<<data.substr(start, end-start)<<"]\n";
+                    dbg_2<<"found token ["<<data.substr(start, end-start)<<"]\n";
 
                     //escape string
                     page->meta.push_back(data.substr(start, end-start));

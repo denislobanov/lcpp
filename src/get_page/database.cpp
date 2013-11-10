@@ -11,7 +11,7 @@
 #include "robots_txt.hpp"
 
 //Local defines
-#define DEBUG 2
+//~ #define DEBUG 2
 
 #if defined(DEBUG)
     #define dbg std::cout<<__FILE__<<"("<<__LINE__<<"): "

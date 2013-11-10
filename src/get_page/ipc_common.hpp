@@ -12,7 +12,7 @@ enum worker_status {
     READY,          //configured
     ACTIVE,         //working
     SLEEP,          //blocked (queue)
-    STOPPNIG        //will idle when current crawls complete
+    STOPPING        //will idle when current crawls complete
 };
 
 /**
@@ -24,7 +24,8 @@ enum worker_intruction {
     CAPABILITIES,   //report capabilities
     CONFIGURE,      //configure worker
     GET_CONF,       //report current config
-    KILL            //die now
+    KILL,           //die now
+    NO_INST         //no instruction
 };
 
 /**

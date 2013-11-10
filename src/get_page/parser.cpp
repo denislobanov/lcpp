@@ -11,7 +11,7 @@
 #include "ipc_common.hpp"
 
 //Local defines
-#define DEBUG 2
+#define DEBUG 0
 
 #if (defined(DEBUG))&&(DEBUG > 2)
 #include <fstream>
