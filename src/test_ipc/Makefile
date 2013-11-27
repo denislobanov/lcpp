@@ -4,10 +4,10 @@ CPPFLAGS=-Wall -std=c++11
 INCLUDES=-I/usr/include/boost
 LDDFLAGS=
 
-COMMON_OBJECTS=ipc_test.o
+COMMON_OBJECTS=sync_ipc.o
 
 all: $(COMMON_OBJECTS)
-	$(CC) $(CPPFLAGS) $(INCLUDES) $(COMMON_OBJECTS) -o ipc_test
+	$(CC) $(CPPFLAGS) $(INCLUDES) $(COMMON_OBJECTS) -o sync_ipc
 
 clean:
 	rm -f $(UNIT_TESTS) *.o
@@ -15,4 +15,4 @@ clean:
 %.o : %.cpp
 	$(CC) $(CPPFLAGS) $(INCLUDES) -c $<
 
-.PHONY: all clean
+.PHONY: all clean $(UNIT_TESTS)

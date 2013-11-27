@@ -24,16 +24,11 @@ long_line_column=72
 
 [files]
 current_page=4
-FILE_NAME_0=268;C++;0;16;0;1;0;%2Fhome%2Fvision%2Fdev%2Flcpp%2Fsrc%2Fget_page%2Fnetio.h;0;4
-FILE_NAME_1=0;C++;0;16;0;1;0;%2Fhome%2Fvision%2Fdev%2Fxcxc%2Fsrc%2Fcrawler%2Fdatabase.hpp;0;4
-FILE_NAME_2=20;C++;0;16;0;1;0;%2Fhome%2Fvision%2Fdev%2Fxcxc%2Fsrc%2Fcrawler%2Fnetio.cpp;0;4
-FILE_NAME_3=835;C++;0;16;0;1;0;%2Fhome%2Fvision%2Fdev%2Fxcxc%2Fsrc%2Fcrawler%2Fnetio.hpp;0;4
-FILE_NAME_4=618;C++;0;16;0;1;0;%2Fhome%2Fvision%2Fdev%2Flcpp%2Fsrc%2Fget_page%2Fnetio.cpp;0;4
-FILE_NAME_5=102;C++;0;16;0;1;0;%2Fhome%2Fvision%2Fdev%2Flcpp%2Fsrc%2Fget_page%2Ftest_netio.cpp;0;4
-FILE_NAME_6=855;C++;0;16;0;1;0;%2Fhome%2Fvision%2Fdev%2Flcpp%2Fsrc%2Fget_page%2Fparser.cpp;0;4
-FILE_NAME_7=738;C++;0;16;0;1;0;%2Fhome%2Fvision%2Fdev%2Flcpp%2Fsrc%2Fget_page%2Fparser.h;0;4
-FILE_NAME_8=49;HTML;0;16;0;1;0;%2Fhome%2Fvision%2Fdev%2Flcpp%2Fsrc%2Fget_page%2Ftest_file.html;0;4
-FILE_NAME_9=1518;C++;0;16;0;1;0;%2Fhome%2Fvision%2Fdev%2Flcpp%2Fsrc%2Fget_page%2Ftest_parser.cpp;0;4
+FILE_NAME_0=618;C++;0;EUTF-8;0;1;0;%2Fhome%2Fvision%2Fdev%2Flcpp%2Fsrc%2Fget_page%2Fnetio.cpp;0;4
+FILE_NAME_1=102;C++;0;EUTF-8;0;1;0;%2Fhome%2Fvision%2Fdev%2Flcpp%2Fsrc%2Fget_page%2Ftest_netio.cpp;0;4
+FILE_NAME_2=855;C++;0;EUTF-8;0;1;0;%2Fhome%2Fvision%2Fdev%2Flcpp%2Fsrc%2Fget_page%2Fparser.cpp;0;4
+FILE_NAME_3=49;HTML;0;EUTF-8;0;1;0;%2Fhome%2Fvision%2Fdev%2Flcpp%2Fsrc%2Fget_page%2Ftest_file.html;0;4
+FILE_NAME_4=1518;C++;0;EUTF-8;0;1;0;%2Fhome%2Fvision%2Fdev%2Flcpp%2Fsrc%2Fget_page%2Ftest_parser.cpp;0;4
 
 [build-menu]
 NF_00_LB=_Make
