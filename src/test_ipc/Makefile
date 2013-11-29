@@ -1,14 +1,14 @@
 CC=clang++
-CPPFLAGS=-Wall -std=c++11
+CPPFLAGS=-Wall -std=c++11 -v
 
-INCLUDES=-I/usr/include/boost
-LDDFLAGS=
+INCLUDES=-I/home/vision/dev/xdrc/build/boost/include
+LDDFLAGS=-L/home/vision/dev/xdrc/build/boost/lib/
+LIBRARIES=-lboost_system -lpthread
 
 COMMON_OBJECTS=sync_ipc.o
 
 all: $(COMMON_OBJECTS)
-	$(CC) $(CPPFLAGS) $(INCLUDES) $(COMMON_OBJECTS) -o sync_ipc
-
+	$(CC) $(CPPFLAGS) $(INCLUDES) $(COMMON_OBJECTS) -o sync_ipc $(LDDFLAGS) $(LIBRARIES) 
 clean:
 	rm -f $(UNIT_TESTS) *.o
 
