@@ -17,20 +17,20 @@ class ipc_client
     public:
     ipc_client(std::string addr): resolver_(ipc_service), socket_(ipc_service)
     {
-        cout<<"initiating client\n";
+        cout<<"client: initiating client\n";
         tcp::resolver::query query(tcp::v4(), "127.0.0.1", "23331");
-        cout<<"\tconstructed query\n";
+        cout<<"client: \tconstructed query\n";
         tcp::resolver::iterator ei = resolver_.resolve(query);
-        cout<<"\tfound server\n";
+        cout<<"client: \tfound server\n";
 
         boost::asio::connect(socket_, ei);
-        cout<<"\tconnected to server\n";
+        cout<<"client: \tconnected to server\n";
     }
 
     void send_data(char d[32])
     {
         boost::asio::write(socket_, boost::asio::buffer(d, 32));
-        cout<<"data sent ["<<d<<"]\n";
+        cout<<"client: data sent ["<<d<<"]\n";
     }
 
     private:
@@ -42,48 +42,51 @@ class ipc_client
 class ipc_server
 {
     public:
-    ipc_server(): acceptor_(ipc_service, tcp::endpoint(tcp::v4(), MASTER_SERVICE_PORT))
+    ipc_server():
+        acceptor_(ipc_service, tcp::endpoint(tcp::v4(), MASTER_SERVICE_PORT)),
+        socket_(ipc_service)
     {
-        cout<<"initiated server\n";
+        cout<<"server: initiated server\n";
         do_accept();
     }
 
     private:
     boost::asio::io_service ipc_service;
     tcp::acceptor acceptor_;
-
+    tcp::socket socket_;
+    char data[32];
+    
     void do_accept(void)
     {
-        cout<<"server accepting connections\n";
-        for(;;) {
-            tcp::socket socket(ipc_service);
-            acceptor_.accept(socket);
-            cout<<"client connected\n";
+        acceptor_.async_accept(socket_,
+            [this](boost::system::error_code ec)
+            {
+                cout<<"server: lambda acceptor handler\n";
+                if(!ec) {
+                    cout<<"server: async read\n";
+                    boost::asio::async_read(socket_,
+                        boost::asio::buffer(data, 32),
+                        boost::bind(&ipc_server::read_handler,
+                                    this,
+                                    boost::asio::placeholders::error)
+                    );
+                }
 
-            char data[32];
+                do_accept();
+            });
+    }
 
-            boost::system::error_code error;
-            boost::asio::read(socket, boost::asio::buffer(data, sizeof(data)), error);
-            if (error == boost::asio::error::eof)
-                break; // Connection closed cleanly by peer.
-            else if (error)
-                throw boost::system::system_error(error); // Some other error.
-
-            cout<<"client sent "<<data<<endl;
-        }
+    void read_handler(boost::system::error_code ec)
+    {
+        if(!ec)
+            cout<<"server: client sent ["<<data<<"]\n";
     }
 };
-
-void run_server(void)
-{
-    ipc_server test_server;
-    cout<<"end of run_server()\n";
-}
 
 int main(void)
 {
     cout<<"instantiating server\n";
-    std::thread srv(run_server);
+    ipc_server test_server;
 
     cout<<"instantiating client\n";
     ipc_client test_client("127.0.0.1");
@@ -94,8 +97,5 @@ int main(void)
     test_client.send_data(data);
 
     cout<<"done\n";
-    srv.join();
-    cout<<"server thread joined\n";
-
     return 0;
 }
