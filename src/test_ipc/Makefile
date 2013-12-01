@@ -1,18 +1,19 @@
 CC=clang++
-CPPFLAGS=-Wall -std=c++11 -v
+CPPFLAGS=-Wall -std=c++11
 
 INCLUDES=-I/home/vision/dev/xdrc/build/boost/include
 LDDFLAGS=-L/home/vision/dev/xdrc/build/boost/lib/
 LIBRARIES=-lboost_system -lpthread
 
-COMMON_OBJECTS=sync_ipc.o
+TESTS=sync_ipc
 
-all: $(COMMON_OBJECTS)
-	$(CC) $(CPPFLAGS) $(INCLUDES) $(COMMON_OBJECTS) -o sync_ipc $(LDDFLAGS) $(LIBRARIES) 
+all: $(TESTS)
+
 clean:
-	rm -f $(UNIT_TESTS) *.o
+	rm -f $(TESTS) *.o
 
-%.o : %.cpp
-	$(CC) $(CPPFLAGS) $(INCLUDES) -c $<
+$(TESTS):
+	$(CC) $(CPPFLAGS) $(INCLUDES) -c $@.cpp
+	$(CC) $(CPPFLAGS) $(INCLUDES) $@.o -o $@ $(LDDFLAGS) $(LIBRARIES)
 
-.PHONY: all clean $(UNIT_TESTS)
+.PHONY: all clean $(TESTS)
