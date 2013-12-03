@@ -1,3 +1,4 @@
 *.o
 sync_ipc
 async_ipc
+sync_async_ipc

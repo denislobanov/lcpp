@@ -5,7 +5,7 @@ INCLUDES=-I/home/vision/dev/xdrc/build/boost/include
 LDDFLAGS=-L/home/vision/dev/xdrc/build/boost/lib/
 LIBRARIES=-lboost_system -lpthread
 
-TESTS=sync_ipc async_ipc
+TESTS=sync_ipc sync_async_ipc async_ipc
 
 all: $(TESTS)
 

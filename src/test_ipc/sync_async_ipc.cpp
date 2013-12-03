@@ -55,7 +55,7 @@ class ipc_server
     tcp::acceptor acceptor_;
     tcp::socket socket_;
     char data[32];
-    
+
     void do_accept(void)
     {
         acceptor_.async_accept(socket_,

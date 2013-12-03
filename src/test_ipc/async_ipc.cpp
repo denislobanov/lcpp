@@ -19,18 +19,47 @@ class ipc_client
     {
         cout<<"client: initiating client\n";
         tcp::resolver::query query(tcp::v4(), "127.0.0.1", "23331");
-        cout<<"client: \tconstructed query\n";
+        cout<<"client: constructed query\n";
         tcp::resolver::iterator ei = resolver_.resolve(query);
-        cout<<"client: \tfound server\n";
+        cout<<"client: found server\n";
 
-        boost::asio::connect(socket_, ei);
-        cout<<"client: \tconnected to server\n";
+        boost::asio::async_connect(socket_, ei,
+            [this](boost::system::error_code ec, tcp::resolver::iterator i)
+            {
+                if(ec)
+                    cout<<"client: connection error - "<<ec.message()<<endl;
+
+                cout<<"client:  trying to connect to "<<i->endpoint()<<endl;
+                return i;
+            },
+            [this](boost::system::error_code ec, tcp::resolver::iterator i)
+            {
+                if(!ec)
+                    cout<<"client: connected to server: "<<i->endpoint()<<endl;
+                else
+                    cout<<"client: connection error - "<<ec.message()<<endl;
+            });
+
+        ipc_service.run();
+    }
+
+    void disconnect(void)
+    {
+        ipc_service.post([this]() { socket_.close(); });
     }
 
     void send_data(char d[32])
     {
-        boost::asio::write(socket_, boost::asio::buffer(d, 32));
-        cout<<"client: data sent ["<<d<<"]\n";
+        boost::asio::async_write(socket_, boost::asio::buffer(d, 32),
+            [this, d](boost::system::error_code ec, std::size_t)
+            {
+                if(!ec) {
+                    cout<<"client: data sent ["<<d<<"]\n";
+                } else {
+                    cout<<"client: write handler error "<<ec.message()<<endl;
+                    socket_.close();
+                }
+            });
     }
 
     private:
@@ -48,6 +77,7 @@ class ipc_server
     {
         cout<<"server: initiated server\n";
         do_accept();
+        ipc_service.run();
     }
 
     private:
@@ -55,13 +85,12 @@ class ipc_server
     tcp::acceptor acceptor_;
     tcp::socket socket_;
     char data[32];
-    
+
     void do_accept(void)
     {
         acceptor_.async_accept(socket_,
             [this](boost::system::error_code ec)
             {
-                cout<<"server: lambda acceptor handler\n";
                 if(!ec) {
                     cout<<"server: async read\n";
                     boost::asio::async_read(socket_,
@@ -83,10 +112,16 @@ class ipc_server
     }
 };
 
+void run_server(void)
+{
+    ipc_server test_server;
+    cout<<"end of run_server()\n";
+}
+
 int main(void)
 {
     cout<<"instantiating server\n";
-    ipc_server test_server;
+    std::thread srv(run_server);
 
     cout<<"instantiating client\n";
     ipc_client test_client("127.0.0.1");
@@ -95,7 +130,10 @@ int main(void)
     cout<<"sending data ["<<data<<"] to server\n";
 
     test_client.send_data(data);
+    test_client.disconnect();
 
     cout<<"done\n";
+    srv.join();
+    cout<<"server thread joined\n";
     return 0;
 }
