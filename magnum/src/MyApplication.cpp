@@ -1,9 +1,10 @@
 #include <Magnum/DefaultFramebuffer.h>
-#include <Magnum/Platform/Sdl2Application.h>
 #include <Magnum/SceneGraph/Scene.h>
-#include <Magnum/SceneGraph/MatrixTransformation2D.h>
 #include <Magnum/SceneGraph/Camera.h>
 #include <Magnum/SceneGraph/Drawable.h>
+
+#include "SillyGame.h"
+#include "loader.h"
 
 namespace SillyGame {
 class MyApplication: public Platform::Application {
@@ -28,6 +29,9 @@ MyApplication::MyApplication(const Arguments& arguments): Platform::Application{
         .setViewport(defaultFramebuffer.viewport().size());
 
     /* TODO: Prepare your objects here and add them to the scene */
+
+    // loader
+    Loader* loader = new Loader();
 }
 
 void MyApplication::drawEvent() {
@@ -40,4 +44,4 @@ void MyApplication::drawEvent() {
 
 }
 
-MAGNUM_APPLICATION_MAIN(MyApplication)
+MAGNUM_APPLICATION_MAIN(SillyGame::MyApplication)

@@ -2,7 +2,7 @@
 #define CHARACTER_H
 
 #include <Magnum/SceneGraph/Drawable.h>
-#include <Magnum/ResourceManager.h>
+#include <Magnum/Texture.h>
 
 #include "SillyGame.h"
 #include "breed.h"
@@ -12,14 +12,17 @@
  * specialise.
  */
 namespace SillyGame {
-class Character: public Object2D,  SceneGraph::Drawable2D {
+
+class Breed;
+
+class Character: public Object2D, public SceneGraph::Drawable2D {
     friend class Breed;
 
     public:
-        void draw(const Matrix3D transformationMatrix, SceneGraph::Camera<dimensions, T>& camera) override;
+        void draw(const Matrix3 transformationMatrix, SceneGraph::Camera2D& camera);
 
     private:
-        Character(Breed& breed): texture(breed.texture()), mesh(breed.mesh()) {}
+        Character(const Breed& breed);//: texture(breed.texture()), mesh(breed.mesh()) {}
 
         Vector2i position;
         Texture2D& texture;

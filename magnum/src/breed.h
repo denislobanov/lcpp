@@ -6,7 +6,8 @@
  * and not.
  */
 
-#include <Magnum/SceneGraph/Drawable.h>
+#include <Magnum/Texture.h>
+#include <Magnum/Mesh.h>
 
 #include "SillyGame.h"
 #include "character.h"
@@ -15,7 +16,7 @@ namespace SillyGame {
 class Breed {
     public:
         Breed(Texture2D& tex);
-        inline Character* newCharacter() { return new Character(*this); }
+        Character* newCharacter();
 
         Texture2D* texture();
         Mesh* mesh();
@@ -23,10 +24,10 @@ class Breed {
     private:
         // Only one texture for the image, later this can be an array for standing
         // and moving animation.
-        Texture2D texture;
+        Texture2D texture_;
 
         // This is always a square.
-        Mesh mesh;
+        Mesh mesh_;
 
         //TODO: support inheritence when breed stores more than texture & mesh
 };

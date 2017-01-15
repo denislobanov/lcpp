@@ -1,6 +1,9 @@
 #ifndef LOADER_H
 #define LOADER_H
 
+#include <Magnum/Trade/ImageData.h>
+#include <Magnum/Trade/AbstractImporter.h>
+
 #include "breed.h"
 
 /**@file
@@ -13,9 +16,8 @@ class Loader {
         Breed* newBreed(std::string path);
 
     private:
-        PluginManager::Manager<Trade::AbstractImporter> manager{MAGNUM_PLUGINS_IMPORTER_DIR};
         std::unique_ptr<Trade::AbstractImporter> importer;
 };
 }
-
+ 
 #endif
