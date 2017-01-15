@@ -1,21 +1,24 @@
 #ifndef BREED_H
 #define BREED_H
 
-/** @file
- * @brief defines a base type for various characters in the game - both player
- * and not.
- */
-
 #include <Magnum/Texture.h>
 #include <Magnum/Mesh.h>
+#include <Magnum/Trade/ImageData.h>
 
 #include "SillyGame.h"
 #include "character.h"
 
+/** @file
+ * @brief defines a base type for various characters in the game - both player
+ * and not.
+ */
 namespace SillyGame {
+
+class Character;
+
 class Breed {
     public:
-        Breed(Texture2D& tex);
+        Breed(Trade::ImageData2D& image);
         Character* newCharacter();
 
         Texture2D* texture();

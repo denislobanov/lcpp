@@ -6,7 +6,6 @@
 #include <Corrade/PluginManager/Manager.h>
 #include <Magnum/Trade/AbstractImporter.h>
 #include <Magnum/Trade/ImageData.h>
-#include <Magnum/Trade/TextureData.h>
 
 #include "breed.h"
 #include "loader.h"
@@ -20,19 +19,29 @@ namespace SillyGame {
 Loader::Loader() {
     PluginManager::Manager<Trade::AbstractImporter> manager{MAGNUM_PLUGINS_IMPORTER_DIR};
     importer = manager.loadAndInstantiate("AnyImageImporter");
+    if(!importer) {
+        Error() << "Cannot load importer plugin from" << manager.pluginDirectory();
+        std::exit(1);
+    }
 }
 
-Breed* Loader::newBreed(std::string path) {
+Breed* Loader::newBreed(const std::string path) {
     std::ifstream file(path);
     if(file) {
-        json j;
-        file >> j;
+        json conf;
+        file >> conf;
 
-        // Load texture from config
-        //
-        //j.at("texture")
+        // Load texture
+        importer->openFile(conf.at("texture"));
+        if(importer->isOpened()) {
+            std::optional<Trade::ImageData2D> image = importer->image2D(0);
+            CORRADE_INTERNAL_ASSERT(image);
+
+            Breed* breed = new Breed(*image);
+            return breed;
+        }
     }
 
-    return 0;
+    return nullptr;
 }
 }
